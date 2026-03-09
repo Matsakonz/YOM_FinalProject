@@ -1,0 +1,327 @@
+[
+    {
+        "id": "3d30a48e8cdd7818",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "d5ef7a915a7c722a",
+        "type": "mqtt in",
+        "z": "3d30a48e8cdd7818",
+        "name": "",
+        "topic": "yom/sensors/light",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "5e32988b2e720b33",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 380,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7a486997dbd24215",
+        "type": "mqtt in",
+        "z": "3d30a48e8cdd7818",
+        "name": "",
+        "topic": "yom/sensors/moisture",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "5e32988b2e720b33",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 400,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "22cb5b2c91fd9f30",
+        "type": "mqtt in",
+        "z": "3d30a48e8cdd7818",
+        "name": "",
+        "topic": "yom/sensors/temperature",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "5e32988b2e720b33",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 410,
+        "y": 360,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "eae7e8954af9c686",
+        "type": "http in",
+        "z": "3d30a48e8cdd7818",
+        "name": "",
+        "url": "/myui",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 200,
+        "y": 560,
+        "wires": [
+            [
+                "76a96a1fc8d8bc8b"
+            ]
+        ]
+    },
+    {
+        "id": "d788ab124df2dd62",
+        "type": "http response",
+        "z": "3d30a48e8cdd7818",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 790,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "0dfb75b83482591f",
+        "type": "template",
+        "z": "3d30a48e8cdd7818",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Smart Pot Dashboard</title>\n    <!-- Tailwind CSS for styling -->\n    <script src=\"https://cdn.tailwindcss.com\"></script>\n    <!-- Phosphor Icons for UI icons -->\n    <script src=\"https://unpkg.com/@phosphor-icons/web\"></script>\n    \n    <style>\n        /* Custom scrollbar and minor tweaks */\n        body { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif; }\n        .hidden { display: none !important; }\n    </style>\n</head>\n<body class=\"bg-slate-50 text-slate-800 selection:bg-green-100 min-h-screen\">\n\n    <!-- Top Navigation Bar -->\n    <nav class=\"bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10 shadow-sm\">\n        <div class=\"max-w-5xl mx-auto flex justify-between items-center\">\n            <div class=\"flex items-center space-x-3\">\n                <div class=\"bg-green-500 p-2 rounded-xl text-white flex items-center justify-center\">\n                    <i class=\"ph ph-leaf text-2xl\"></i>\n                </div>\n                <h1 class=\"text-xl font-bold tracking-tight text-gray-900\">Smart Pot Dashboard</h1>\n            </div>\n            \n            <div class=\"flex items-center space-x-4\">\n                <!-- Data Source Status Indicator -->\n                <div class=\"flex items-center space-x-2 text-sm font-medium\">\n                    <span class=\"flex items-center text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full\">\n                        <i class=\"ph ph-database text-base mr-2\"></i> Mock Data\n                    </span>\n                </div>\n\n                <button id=\"toggle-settings-btn\" class=\"p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors\">\n                    <i class=\"ph ph-gear text-xl\"></i>\n                </button>\n            </div>\n        </div>\n    </nav>\n\n    <!-- Main Content -->\n    <main class=\"max-w-5xl mx-auto px-6 py-8 space-y-8\">\n\n        <!-- Settings Panel (Collapsible) -->\n        <div id=\"settings-panel\" class=\"hidden bg-white p-6 rounded-2xl border border-gray-200 shadow-sm mb-6 transition-all\">\n            <h2 class=\"text-lg font-semibold mb-4 flex items-center\">\n                <i class=\"ph ph-gear text-lg mr-2 text-gray-500\"></i>\n                Mock Data Settings\n            </h2>\n            <div class=\"flex flex-col sm:flex-row gap-4\">\n                <div class=\"flex-1\">\n                    <label class=\"block text-sm font-medium text-gray-600 mb-1\">Update Interval</label>\n                    <select id=\"update-interval\" class=\"w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all\">\n                        <option value=\"1000\">1 second</option>\n                        <option value=\"2000\" selected>2 seconds</option>\n                        <option value=\"5000\">5 seconds</option>\n                        <option value=\"10000\">10 seconds</option>\n                    </select>\n                </div>\n                <div class=\"flex items-end space-x-3\">\n                    <button id=\"refresh-btn\" class=\"px-6 py-2 bg-gray-800 text-white rounded-xl font-medium hover:bg-gray-700 transition-colors\">\n                        Refresh Now\n                    </button>\n                    <button id=\"pause-btn\" class=\"px-6 py-2 rounded-xl font-medium transition-colors border bg-white text-purple-600 border-purple-200 hover:bg-purple-50\">\n                        Pause Updates\n                    </button>\n                </div>\n            </div>\n            <div class=\"mt-4 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-100\">\n                <p><strong>Mock Data Mode:</strong> This dashboard is displaying simulated sensor data. In production, this would connect to real sensor hardware via WebSocket.</p>\n            </div>\n        </div>\n\n        <!-- Live Sensor Data Section -->\n        <section>\n            <div class=\"flex justify-between items-end mb-4\">\n                <h2 class=\"text-xl font-bold text-gray-800\">Live Pot Status</h2>\n                <span id=\"last-updated\" class=\"text-xs text-gray-400\">Waiting for data...</span>\n            </div>\n            \n            <div class=\"grid grid-cols-1 md:grid-cols-3 gap-6\">\n                <!-- Temperature -->\n                <div class=\"p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4 bg-white transition-all hover:shadow-md\">\n                    <div class=\"p-4 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center\">\n                        <i class=\"ph ph-thermometer text-3xl\"></i>\n                    </div>\n                    <div>\n                        <p class=\"text-sm font-medium text-gray-500 mb-1\">Soil Temperature</p>\n                        <div class=\"flex items-baseline space-x-1\">\n                            <h3 id=\"temp-val\" class=\"text-3xl font-bold text-gray-800\">\"0\"</h3>\n                            <span class=\"text-lg text-gray-400 font-medium\">°C</span>\n                        </div>\n                    </div>\n                </div>\n                <!-- Humidity -->\n                <div class=\"p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4 bg-white transition-all hover:shadow-md\">\n                    <div class=\"p-4 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center\">\n                        <i class=\"ph ph-drop text-3xl\"></i>\n                    </div>\n                    <div>\n                        <p class=\"text-sm font-medium text-gray-500 mb-1\">Soil Moisture</p>\n                        <div class=\"flex items-baseline space-x-1\">\n                            <h3 id=\"hum-val\" class=\"text-3xl font-bold text-gray-800\">0</h3>\n                            <span class=\"text-lg text-gray-400 font-medium\">%</span>\n                        </div>\n                    </div>\n                </div>\n                <!-- Light -->\n                <div class=\"p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4 bg-white transition-all hover:shadow-md\">\n                    <div class=\"p-4 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center\">\n                        <i class=\"ph ph-sun text-3xl\"></i>\n                    </div>\n                    <div>\n                        <p class=\"text-sm font-medium text-gray-500 mb-1\">Light Exposure</p>\n                        <div class=\"flex items-baseline space-x-1\">\n                            <h3 id=\"light-val\" class=\"text-3xl font-bold text-gray-800\">0</h3>\n                            <span class=\"text-lg text-gray-400 font-medium\">lux</span>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        </section>\n\n        <!-- Plant Configuration Section -->\n        <section class=\"bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden mt-8\">\n            <div class=\"p-6 md:p-8\">\n                <div class=\"flex items-center space-x-3 mb-6\">\n                    <div class=\"bg-green-100 p-2 rounded-lg text-green-600 flex items-center justify-center\">\n                        <i class=\"ph ph-plant text-2xl\"></i>\n                    </div>\n                    <div>\n                        <h2 class=\"text-xl font-bold text-gray-800\">Plant Configuration</h2>\n                        <p class=\"text-sm text-gray-500\">Select the plant currently in the pot to adjust care algorithms.</p>\n                    </div>\n                </div>\n\n                <form id=\"plant-form\" method=\"POST\" action=\"/success\">\n                    <div id=\"plant-grid\" class=\"grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8\">\n                        <!-- Plant buttons injected via JS -->\n                    </div>\n\n                    <input type=\"hidden\" id=\"selected-plant-input\" name=\"plant\" value=\"\">\n                    <input type=\"hidden\" name=\"plantName\" id=\"plant-name-input\" value=\"\">\n                    \n                    <div class=\"flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-gray-100\">\n                        <p class=\"text-sm text-gray-500 mb-4 sm:mb-0\">\n                            Currently selected: \n                            <strong id=\"selected-plant-name\" class=\"text-gray-800 ml-1\">Monstera Deliciosa</strong>\n                        </p>\n                        \n                        <div class=\"flex flex-col items-end\">\n                            <button type=\"submit\" id=\"save-btn\" class=\"flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-green-600 text-white hover:bg-green-700 hover:shadow-md\">\n                                <span id=\"save-btn-text\">Save Configuration</span>\n                                <i id=\"save-btn-icon\" class=\"ph ph-check text-lg\"></i>\n                            </button>\n                            <span id=\"save-success-msg\" class=\"text-xs text-emerald-500 mt-2 hidden\">Configuration saved successfully!</span>\n                        </div>\n                    </div>\n                </form>\n            </div>\n        </section>\n\n    </main>\n\n    <script>\n        // --- State Management ---\n        const PLANT_TYPES = [\n            { id: 'monstera', name: 'Monstera Deliciosa', idealTemp: '20-30°C', idealHum: '60-80%' },\n            { id: 'snake_plant', name: 'Snake Plant', idealTemp: '15-30°C', idealHum: '30-50%' },\n            { id: 'fern', name: 'Boston Fern', idealTemp: '15-25°C', idealHum: '70-90%' },\n            { id: 'succulent', name: 'Succulent Mix', idealTemp: '18-28°C', idealHum: '20-40%' },\n            { id: 'basil', name: 'Sweet Basil', idealTemp: '20-25°C', idealHum: '50-60%' },\n            { id: 'calathea', name: 'Calathea', idealTemp: '18-24°C', idealHum: '70-85%' }\n        ];\n\n        let state = {\n            showSettings: false,\n            selectedPlant: PLANT_TYPES[0].id,\n            sensors: { temperature: 0, humidity: 0, light: 0 },\n            updateInterval: 2000,\n            isPaused: false\n        };\n\n        let mockDataInterval = null;\n\n        // --- DOM Elements ---\n        const els = {\n            settingsPanel: document.getElementById('settings-panel'),\n            toggleSettingsBtn: document.getElementById('toggle-settings-btn'),\n            updateInterval: document.getElementById('update-interval'),\n            refreshBtn: document.getElementById('refresh-btn'),\n            pauseBtn: document.getElementById('pause-btn'),\n            \n            tempVal: document.getElementById('temp-val'),\n            humVal: document.getElementById('hum-val'),\n            lightVal: document.getElementById('light-val'),\n            lastUpdated: document.getElementById('last-updated'),\n            \n            plantGrid: document.getElementById('plant-grid'),\n            selectedPlantName: document.getElementById('selected-plant-name'),\n            plantForm: document.getElementById('plant-form'),\n            selectedPlantInput: document.getElementById('selected-plant-input'),\n            plantNameInput: document.getElementById('plant-name-input'),\n            saveBtn: document.getElementById('save-btn'),\n            saveBtnText: document.getElementById('save-btn-text'),\n            saveBtnIcon: document.getElementById('save-btn-icon'),\n            saveSuccessMsg: document.getElementById('save-success-msg')\n        };\n\n        // --- Initialization ---\n        function init() {\n            renderPlantGrid();\n            setupEventListeners();\n            startMockData();\n        }\n\n        // --- Event Listeners ---\n        function setupEventListeners() {\n            els.toggleSettingsBtn.addEventListener('click', () => {\n                state.showSettings = !state.showSettings;\n                els.settingsPanel.classList.toggle('hidden', !state.showSettings);\n            });\n\n            els.updateInterval.addEventListener('change', (e) => {\n                state.updateInterval = parseInt(e.target.value);\n                if (!state.isPaused) {\n                    stopMockData();\n                    startMockData();\n                }\n            });\n\n            els.refreshBtn.addEventListener('click', () => {\n                generateMockData();\n            });\n\n            els.pauseBtn.addEventListener('click', togglePause);\n\n            els.plantForm.addEventListener('submit', function(e) {\n                e.preventDefault();\n                saveConfiguration();\n            });\n        }\n\n        // --- UI Updaters ---\n        function updateConnectionUI() {\n            els.statusDisconnected.classList.add('hidden');\n            els.statusConnected.classList.add('hidden');\n            els.statusSimulating.classList.add('hidden');\n\n            if (state.isSimulating) {\n                els.statusSimulating.classList.remove('hidden');\n                els.wsUrlInput.disabled = true;\n                els.reconnectBtn.disabled = true;\n                els.simulateBtn.className = \"px-6 py-2 rounded-xl font-medium transition-colors border bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200\";\n                els.simulateBtn.innerText = \"Stop Simulation\";\n            } else {\n                els.wsUrlInput.disabled = false;\n                els.reconnectBtn.disabled = false;\n                els.simulateBtn.className = \"px-6 py-2 rounded-xl font-medium transition-colors border bg-white text-purple-600 border-purple-200 hover:bg-purple-50\";\n                els.simulateBtn.innerText = \"Test Simulation\";\n                \n                if (state.isConnected) {\n                    els.statusConnected.classList.remove('hidden');\n                } else {\n                    els.statusDisconnected.classList.remove('hidden');\n                }\n            }\n        }\n\n        function updateSensorUI(data) {\n            if (data.temperature !== undefined) els.tempVal.innerText = data.temperature;\n            if (data.humidity !== undefined) els.humVal.innerText = data.humidity;\n            if (data.light !== undefined) els.lightVal.innerText = data.light;\n            \n            const now = new Date();\n            els.lastUpdated.innerText = `Last updated: ${now.toLocaleTimeString()}`;\n        }\n\n        function renderPlantGrid() {\n            els.plantGrid.innerHTML = PLANT_TYPES.map(plant => {\n                const isSelected = state.selectedPlant === plant.id;\n                const baseClasses = \"text-left p-4 rounded-2xl border-2 transition-all cursor-pointer \";\n                const colorClasses = isSelected \n                    ? \"border-green-500 bg-green-50 shadow-sm\" \n                    : \"border-gray-100 bg-white hover:border-green-200 hover:bg-gray-50\";\n                const titleColor = isSelected ? \"text-green-800\" : \"text-gray-800\";\n                const dotHtml = isSelected ? `<div class=\"h-3 w-3 rounded-full bg-green-500 mt-1\"></div>` : '';\n\n                return `\n                    <button type=\"button\" onclick=\"selectPlant('${plant.id}')\" class=\"${baseClasses} ${colorClasses}\">\n                        <div class=\"flex justify-between items-start mb-2\">\n                            <h3 class=\"font-semibold ${titleColor}\">${plant.name}</h3>\n                            ${dotHtml}\n                        </div>\n                        <div class=\"text-xs space-y-1 text-gray-500\">\n                            <p class=\"flex justify-between\">\n                                <span>Ideal Temp:</span> <span class=\"font-medium text-gray-700\">${plant.idealTemp}</span>\n                            </p>\n                            <p class=\"flex justify-between\">\n                                <span>Ideal Hum:</span> <span class=\"font-medium text-gray-700\">${plant.idealHum}</span>\n                            </p>\n                        </div>\n                    </button>\n                `;\n            }).join('');\n\n            const selectedPlantObj = PLANT_TYPES.find(p => p.id === state.selectedPlant);\n            els.selectedPlantName.innerText = selectedPlantObj ? selectedPlantObj.name : '';\n        }\n\n        // Global function for inline onclick handler\n        window.selectPlant = function(plantId) {\n            state.selectedPlant = plantId;\n            renderPlantGrid();\n            \n            // Update hidden form inputs\n            const plantInfo = PLANT_TYPES.find(p => p.id === plantId);\n            document.getElementById('selected-plant-input').value = plantId;\n            document.getElementById('plant-name-input').value = plantInfo ? plantInfo.name : '';\n        }\n\n        // // --- Mock Data Logic ---\n        function generateMockData() {\n            // We wrap the mustache tags in quotes so if they are empty, \n            // the JavaScript sees an empty string \"\" instead of a syntax error.\n            const rawTemp = \"{{payload.temp}}\";\n            const rawHum  = \"{{payload.humidity}}\";\n            const rawLight = \"{{payload.light}}\";\n\n            const mockData = {\n                // We convert the string to a number, or use a default (0) if it's empty\n                temperature: rawTemp ? parseFloat(rawTemp).toFixed(1) : (0).toFixed(1),\n                humidity: rawHum ? parseInt(rawHum) : 0,\n                light: rawLight ? parseInt(rawLight) : 0\n            };\n            \n            state.sensors = mockData;\n            updateSensorUI(mockData);\n        }\n\n        function startMockData() {\n            if (mockDataInterval) {\n                clearInterval(mockDataInterval);\n            }\n            \n            generateMockData(); // Initial data\n            mockDataInterval = setInterval(generateMockData, state.updateInterval);\n        }\n\n        function stopMockData() {\n            if (mockDataInterval) {\n                clearInterval(mockDataInterval);\n                mockDataInterval = null;\n            }\n        }\n\n        function togglePause() {\n            state.isPaused = !state.isPaused;\n            \n            if (state.isPaused) {\n                stopMockData();\n                els.pauseBtn.className = \"px-6 py-2 rounded-xl font-medium transition-colors border bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200\";\n                els.pauseBtn.innerText = \"Resume Updates\";\n            } else {\n                startMockData();\n                els.pauseBtn.className = \"px-6 py-2 rounded-xl font-medium transition-colors border bg-white text-purple-600 border-purple-200 hover:bg-purple-50\";\n                els.pauseBtn.innerText = \"Pause Updates\";\n            }\n        }\n\n        // --- Save Configuration ---\n        function setSaveButtonStatus(status) {\n            els.saveBtn.disabled = true;\n            els.saveSuccessMsg.classList.add('hidden');\n\n            if (status === 'saving') {\n                els.saveBtn.className = \"flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-green-600 text-white\";\n                els.saveBtnText.innerText = \"Saving...\";\n                els.saveBtnIcon.className = \"ph ph-spinner text-lg animate-spin\";\n            } else if (status === 'success') {\n                els.saveBtn.className = \"flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-emerald-500 text-white hover:bg-emerald-600\";\n                els.saveBtnText.innerText = \"Saved\";\n                els.saveBtnIcon.className = \"ph ph-check-circle text-lg\";\n                els.saveSuccessMsg.classList.remove('hidden');\n            } else {\n                // Default\n                els.saveBtn.disabled = false;\n                els.saveBtn.className = \"flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-green-600 text-white hover:bg-green-700 hover:shadow-md\";\n                els.saveBtnText.innerText = \"Save Configuration\";\n                els.saveBtnIcon.className = \"ph ph-check text-lg\";\n            }\n        }\n\n        function saveConfiguration() {\n            const plantInfo = PLANT_TYPES.find(p => p.id === state.selectedPlant);\n            const config = {\n                plant: plantInfo.id,\n                plantName: plantInfo.name,\n                updateInterval: state.updateInterval,\n                timestamp: Date.now()\n            };\n\n            setSaveButtonStatus('saving');\n            \n            // Simulate saving to localStorage or backend\n            setTimeout(() => {\n                localStorage.setItem('smartPotConfig', JSON.stringify(config));\n                console.log('Configuration saved:', config);\n                \n                // Update form inputs and submit\n                els.selectedPlantInput.value = config.plant;\n                els.plantNameInput.value = config.plantName;\n                \n                setSaveButtonStatus('success');\n                \n                // Submit form to /success\n                els.plantForm.submit();\n            }, 800);\n        }\n\n        // Start app\n        init();\n\n    </script>\n</body>\n</html>",
+        "output": "str",
+        "x": 600,
+        "y": 560,
+        "wires": [
+            [
+                "d788ab124df2dd62"
+            ]
+        ]
+    },
+    {
+        "id": "f2b4aa646abbe331",
+        "type": "inject",
+        "z": "3d30a48e8cdd7818",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"temp\": 25.5,\"humidity\": 60,\"light\": 800 }",
+        "payloadType": "json",
+        "x": 210,
+        "y": 420,
+        "wires": [
+            [
+                "2ef35af19fa6ac32"
+            ]
+        ]
+    },
+    {
+        "id": "2ef35af19fa6ac32",
+        "type": "change",
+        "z": "3d30a48e8cdd7818",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "flow",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 380,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "76a96a1fc8d8bc8b",
+        "type": "change",
+        "z": "3d30a48e8cdd7818",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "flow",
+                "dc": true
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 400,
+        "y": 560,
+        "wires": [
+            [
+                "0dfb75b83482591f"
+            ]
+        ]
+    },
+    {
+        "id": "4fab52ba1d9fe31f",
+        "type": "http in",
+        "z": "3d30a48e8cdd7818",
+        "name": "",
+        "url": "/success",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 200,
+        "y": 640,
+        "wires": [
+            [
+                "e455b7db70a6fae5",
+                "220a98786204d0f4"
+            ]
+        ]
+    },
+    {
+        "id": "e455b7db70a6fae5",
+        "type": "template",
+        "z": "3d30a48e8cdd7818",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Configuration Saved - Smart Pot</title>\n    <!-- Tailwind CSS for styling -->\n    <script src=\"https://cdn.tailwindcss.com\"></script>\n    <!-- Phosphor Icons for UI icons -->\n    <script src=\"https://unpkg.com/@phosphor-icons/web\"></script>\n    \n    <style>\n        body { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif; }\n        .hidden { display: none !important; }\n    </style>\n</head>\n<body class=\"bg-slate-50 text-slate-800 selection:bg-green-100 min-h-screen\">\n\n    <!-- Top Navigation Bar -->\n    <nav class=\"bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10 shadow-sm\">\n        <div class=\"max-w-5xl mx-auto flex justify-between items-center\">\n            <div class=\"flex items-center space-x-3\">\n                <div class=\"bg-green-500 p-2 rounded-xl text-white flex items-center justify-center\">\n                    <i class=\"ph ph-leaf text-2xl\"></i>\n                </div>\n                <h1 class=\"text-xl font-bold tracking-tight text-gray-900\">Smart Pot Dashboard</h1>\n            </div>\n            \n            <div class=\"flex items-center space-x-4\">\n                <!-- Data Source Status Indicator -->\n                <div class=\"flex items-center space-x-2 text-sm font-medium\">\n                    <span class=\"flex items-center text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full\">\n                        <i class=\"ph ph-database text-base mr-2\"></i> Mock Data\n                    </span>\n                </div>\n            </div>\n        </div>\n    </nav>\n\n    <!-- Main Content -->\n    <main class=\"max-w-5xl mx-auto px-6 py-8\">\n        <!-- Success Message Section -->\n        <section class=\"bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden\">\n            <div class=\"p-8 md:p-12 text-center\">\n                <!-- Success Icon -->\n                <div class=\"flex justify-center mb-6\">\n                    <div class=\"bg-emerald-100 p-6 rounded-full text-emerald-600 flex items-center justify-center\">\n                        <i class=\"ph ph-check-circle text-5xl\"></i>\n                    </div>\n                </div>\n\n                <!-- Success Title -->\n                <h2 class=\"text-3xl font-bold text-gray-800 mb-4\">Plant Configuration Saved!</h2>\n                \n                <!-- Success Description -->\n                <p class=\"text-lg text-gray-600 mb-8 max-w-2xl mx-auto\">\n                    Your Smart Pot has been successfully configured with the new plant settings. The care algorithms will now adjust to provide optimal conditions for your plant.\n                </p>\n\n                <!-- Configuration Details -->\n                <div class=\"bg-gray-50 rounded-2xl p-6 mb-8 max-w-md mx-auto\">\n                    <h3 class=\"text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4\">Configuration Details</h3>\n                    <div class=\"space-y-3 text-left\">\n                        <div class=\"flex justify-between items-center py-2 border-b border-gray-200\">\n                            <span class=\"text-sm text-gray-600\">Plant Type:</span>\n                            <span id=\"selected-plant\" class=\"font-medium text-gray-800\">Loading...</span>\n                        </div>\n                        <div class=\"flex justify-between items-center py-2 border-b border-gray-200\">\n                            <span class=\"text-sm text-gray-600\">Configuration ID:</span>\n                            <span id=\"config-id\" class=\"font-mono text-sm text-gray-800\">Loading...</span>\n                        </div>\n                        <div class=\"flex justify-between items-center py-2\">\n                            <span class=\"text-sm text-gray-600\">Saved At:</span>\n                            <span id=\"saved-time\" class=\"font-medium text-gray-800\">Loading...</span>\n                        </div>\n                    </div>\n                </div>\n\n                <!-- Action Buttons -->\n                <div class=\"flex flex-col sm:flex-row gap-4 justify-center items-center\">\n                    <a href=\"Dashboard.html\" class=\"flex items-center space-x-2 px-8 py-3 rounded-xl font-medium transition-all shadow-sm bg-green-600 text-white hover:bg-green-700 hover:shadow-md\">\n                        <i class=\"ph ph-arrow-left text-lg\"></i>\n                        <span>Back to Dashboard</span>\n                    </a>\n                    \n                    <button onclick=\"window.print()\" class=\"flex items-center space-x-2 px-8 py-3 rounded-xl font-medium transition-all border border-gray-300 bg-white text-gray-700 hover:bg-gray-50\">\n                        <i class=\"ph ph-printer text-lg\"></i>\n                        <span>Print Confirmation</span>\n                    </button>\n                </div>\n\n                <!-- Additional Info -->\n                <div class=\"mt-8 text-sm text-gray-500 bg-blue-50 p-4 rounded-lg border border-blue-100 max-w-2xl mx-auto\">\n                    <p class=\"flex items-start\">\n                        <i class=\"ph ph-info text-blue-500 mr-2 mt-0.5\"></i>\n                        <span>Your plant configuration has been saved to the Smart Pot's memory. The system will now monitor and adjust environmental conditions based on your plant's specific needs.</span>\n                    </p>\n                </div>\n            </div>\n        </section>\n    </main>\n\n    <script>\n        // Parse URL parameters to get form data\n        function getUrlParams() {\n            const params = new URLSearchParams(window.location.search);\n            const formData = {};\n            \n            // Try to get data from URL parameters or localStorage\n            const plant = params.get('plant') || localStorage.getItem('lastPlant');\n            const plantName = params.get('plantName') || localStorage.getItem('lastPlantName');\n            \n            if (plant) formData.plant = plant;\n            if (plantName) formData.plantName = plantName;\n            \n            return formData;\n        }\n\n        // Update the page with configuration details\n        function updateSuccessPage() {\n            const formData = getUrlParams();\n            \n            // Update plant name\n            const plantElement = document.getElementById('selected-plant');\n            if (formData.plantName) {\n                plantElement.textContent = formData.plantName;\n            } else {\n                plantElement.textContent = 'Unknown Plant';\n            }\n            \n            // Generate configuration ID\n            const configId = 'CFG-' + Date.now().toString(36).toUpperCase();\n            document.getElementById('config-id').textContent = configId;\n            \n            // Set saved time\n            const now = new Date();\n            document.getElementById('saved-time').textContent = now.toLocaleString();\n            \n            // Store in localStorage for reference\n            localStorage.setItem('lastPlant', formData.plant || '');\n            localStorage.setItem('lastPlantName', formData.plantName || '');\n            localStorage.setItem('lastConfigId', configId);\n            localStorage.setItem('lastSavedTime', now.toISOString());\n        }\n\n        // Initialize page\n        document.addEventListener('DOMContentLoaded', updateSuccessPage);\n    </script>\n</body>\n</html>\n",
+        "output": "str",
+        "x": 380,
+        "y": 640,
+        "wires": [
+            [
+                "76818944b2a186ef"
+            ]
+        ]
+    },
+    {
+        "id": "76818944b2a186ef",
+        "type": "http response",
+        "z": "3d30a48e8cdd7818",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 550,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "220a98786204d0f4",
+        "type": "debug",
+        "z": "3d30a48e8cdd7818",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 380,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "495ff374fa071e93",
+        "type": "ui_spacer",
+        "z": "3d30a48e8cdd7818",
+        "name": "spacer",
+        "group": "f1534fa128dcdd9b",
+        "order": 1,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "5e32988b2e720b33",
+        "type": "mqtt-broker",
+        "name": "mqttx",
+        "broker": "broker.emqx.io",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "f1534fa128dcdd9b",
+        "type": "ui_group",
+        "name": "Group 1",
+        "tab": "19a8ffd496b4b338",
+        "order": 1,
+        "disp": true,
+        "width": 6
+    },
+    {
+        "id": "19a8ffd496b4b338",
+        "type": "ui_tab",
+        "name": "Tab 1",
+        "icon": "dashboard",
+        "order": 1
+    },
+    {
+        "id": "ef419b5060edcb96",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-dashboard": "3.6.6"
+        }
+    }
+]

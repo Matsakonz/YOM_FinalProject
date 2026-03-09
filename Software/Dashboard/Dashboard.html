@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Pot Dashboard</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons for UI icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        /* Custom scrollbar and minor tweaks */
+        body { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 selection:bg-green-100 min-h-screen">
+
+    <!-- Top Navigation Bar -->
+    <nav class="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10 shadow-sm">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-green-500 p-2 rounded-xl text-white flex items-center justify-center">
+                    <i class="ph ph-leaf text-2xl"></i>
+                </div>
+                <h1 class="text-xl font-bold tracking-tight text-gray-900">Smart Pot Dashboard</h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <!-- Data Source Status Indicator -->
+                <div class="flex items-center space-x-2 text-sm font-medium">
+                    <span class="flex items-center text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                        <i class="ph ph-database text-base mr-2"></i> Mock Data
+                    </span>
+                </div>
+
+                <button id="toggle-settings-btn" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+                    <i class="ph ph-gear text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-6 py-8 space-y-8">
+
+        <!-- Settings Panel (Collapsible) -->
+        <div id="settings-panel" class="hidden bg-white p-6 rounded-2xl border border-gray-200 shadow-sm mb-6 transition-all">
+            <h2 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="ph ph-gear text-lg mr-2 text-gray-500"></i>
+                Mock Data Settings
+            </h2>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <div class="flex-1">
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Update Interval</label>
+                    <select id="update-interval" class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all">
+                        <option value="1000">1 second</option>
+                        <option value="2000" selected>2 seconds</option>
+                        <option value="5000">5 seconds</option>
+                        <option value="10000">10 seconds</option>
+                    </select>
+                </div>
+                <div class="flex items-end space-x-3">
+                    <button id="refresh-btn" class="px-6 py-2 bg-gray-800 text-white rounded-xl font-medium hover:bg-gray-700 transition-colors">
+                        Refresh Now
+                    </button>
+                    <button id="pause-btn" class="px-6 py-2 rounded-xl font-medium transition-colors border bg-white text-purple-600 border-purple-200 hover:bg-purple-50">
+                        Pause Updates
+                    </button>
+                </div>
+            </div>
+            <div class="mt-4 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <p><strong>Mock Data Mode:</strong> This dashboard is displaying simulated sensor data. In production, this would connect to real sensor hardware via WebSocket.</p>
+            </div>
+        </div>
+
+        <!-- Live Sensor Data Section -->
+        <section>
+            <div class="flex justify-between items-end mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Live Pot Status</h2>
+                <span id="last-updated" class="text-xs text-gray-400">Waiting for data...</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Temperature -->
+                <div class="p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4 bg-white transition-all hover:shadow-md">
+                    <div class="p-4 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center">
+                        <i class="ph ph-thermometer text-3xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 mb-1">Soil Temperature</p>
+                        <div class="flex items-baseline space-x-1">
+                            <h3 id="temp-val" class="text-3xl font-bold text-gray-800">"0"</h3>
+                            <span class="text-lg text-gray-400 font-medium">°C</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Humidity -->
+                <div class="p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4 bg-white transition-all hover:shadow-md">
+                    <div class="p-4 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center">
+                        <i class="ph ph-drop text-3xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 mb-1">Soil Moisture</p>
+                        <div class="flex items-baseline space-x-1">
+                            <h3 id="hum-val" class="text-3xl font-bold text-gray-800">0</h3>
+                            <span class="text-lg text-gray-400 font-medium">%</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Light -->
+                <div class="p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4 bg-white transition-all hover:shadow-md">
+                    <div class="p-4 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center">
+                        <i class="ph ph-sun text-3xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 mb-1">Light Exposure</p>
+                        <div class="flex items-baseline space-x-1">
+                            <h3 id="light-val" class="text-3xl font-bold text-gray-800">0</h3>
+                            <span class="text-lg text-gray-400 font-medium">lux</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Plant Configuration Section -->
+        <section class="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden mt-8">
+            <div class="p-6 md:p-8">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-green-100 p-2 rounded-lg text-green-600 flex items-center justify-center">
+                        <i class="ph ph-plant text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">Plant Configuration</h2>
+                        <p class="text-sm text-gray-500">Select the plant currently in the pot to adjust care algorithms.</p>
+                    </div>
+                </div>
+
+                <form id="plant-form" method="POST" action="/success">
+                    <div id="plant-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+                        <!-- Plant buttons injected via JS -->
+                    </div>
+
+                    <input type="hidden" id="selected-plant-input" name="plant" value="">
+                    <input type="hidden" name="plantName" id="plant-name-input" value="">
+                    
+                    <div class="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-gray-100">
+                        <p class="text-sm text-gray-500 mb-4 sm:mb-0">
+                            Currently selected: 
+                            <strong id="selected-plant-name" class="text-gray-800 ml-1">Monstera Deliciosa</strong>
+                        </p>
+                        
+                        <div class="flex flex-col items-end">
+                            <button type="submit" id="save-btn" class="flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-green-600 text-white hover:bg-green-700 hover:shadow-md">
+                                <span id="save-btn-text">Save Configuration</span>
+                                <i id="save-btn-icon" class="ph ph-check text-lg"></i>
+                            </button>
+                            <span id="save-success-msg" class="text-xs text-emerald-500 mt-2 hidden">Configuration saved successfully!</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- State Management ---
+        const PLANT_TYPES = [
+            { id: 'monstera', name: 'Monstera Deliciosa', idealTemp: '20-30°C', idealHum: '60-80%' },
+            { id: 'snake_plant', name: 'Snake Plant', idealTemp: '15-30°C', idealHum: '30-50%' },
+            { id: 'fern', name: 'Boston Fern', idealTemp: '15-25°C', idealHum: '70-90%' },
+            { id: 'succulent', name: 'Succulent Mix', idealTemp: '18-28°C', idealHum: '20-40%' },
+            { id: 'basil', name: 'Sweet Basil', idealTemp: '20-25°C', idealHum: '50-60%' },
+            { id: 'calathea', name: 'Calathea', idealTemp: '18-24°C', idealHum: '70-85%' }
+        ];
+
+        let state = {
+            showSettings: false,
+            selectedPlant: PLANT_TYPES[0].id,
+            sensors: { temperature: 0, humidity: 0, light: 0 },
+            updateInterval: 2000,
+            isPaused: false
+        };
+
+        let mockDataInterval = null;
+
+        // --- DOM Elements ---
+        const els = {
+            settingsPanel: document.getElementById('settings-panel'),
+            toggleSettingsBtn: document.getElementById('toggle-settings-btn'),
+            updateInterval: document.getElementById('update-interval'),
+            refreshBtn: document.getElementById('refresh-btn'),
+            pauseBtn: document.getElementById('pause-btn'),
+            
+            tempVal: document.getElementById('temp-val'),
+            humVal: document.getElementById('hum-val'),
+            lightVal: document.getElementById('light-val'),
+            lastUpdated: document.getElementById('last-updated'),
+            
+            plantGrid: document.getElementById('plant-grid'),
+            selectedPlantName: document.getElementById('selected-plant-name'),
+            plantForm: document.getElementById('plant-form'),
+            selectedPlantInput: document.getElementById('selected-plant-input'),
+            plantNameInput: document.getElementById('plant-name-input'),
+            saveBtn: document.getElementById('save-btn'),
+            saveBtnText: document.getElementById('save-btn-text'),
+            saveBtnIcon: document.getElementById('save-btn-icon'),
+            saveSuccessMsg: document.getElementById('save-success-msg')
+        };
+
+        // --- Initialization ---
+        function init() {
+            renderPlantGrid();
+            setupEventListeners();
+            startMockData();
+        }
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            els.toggleSettingsBtn.addEventListener('click', () => {
+                state.showSettings = !state.showSettings;
+                els.settingsPanel.classList.toggle('hidden', !state.showSettings);
+            });
+
+            els.updateInterval.addEventListener('change', (e) => {
+                state.updateInterval = parseInt(e.target.value);
+                if (!state.isPaused) {
+                    stopMockData();
+                    startMockData();
+                }
+            });
+
+            els.refreshBtn.addEventListener('click', () => {
+                generateMockData();
+            });
+
+            els.pauseBtn.addEventListener('click', togglePause);
+
+            els.plantForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveConfiguration();
+            });
+        }
+
+        // --- UI Updaters ---
+        function updateConnectionUI() {
+            els.statusDisconnected.classList.add('hidden');
+            els.statusConnected.classList.add('hidden');
+            els.statusSimulating.classList.add('hidden');
+
+            if (state.isSimulating) {
+                els.statusSimulating.classList.remove('hidden');
+                els.wsUrlInput.disabled = true;
+                els.reconnectBtn.disabled = true;
+                els.simulateBtn.className = "px-6 py-2 rounded-xl font-medium transition-colors border bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200";
+                els.simulateBtn.innerText = "Stop Simulation";
+            } else {
+                els.wsUrlInput.disabled = false;
+                els.reconnectBtn.disabled = false;
+                els.simulateBtn.className = "px-6 py-2 rounded-xl font-medium transition-colors border bg-white text-purple-600 border-purple-200 hover:bg-purple-50";
+                els.simulateBtn.innerText = "Test Simulation";
+                
+                if (state.isConnected) {
+                    els.statusConnected.classList.remove('hidden');
+                } else {
+                    els.statusDisconnected.classList.remove('hidden');
+                }
+            }
+        }
+
+        function updateSensorUI(data) {
+            if (data.temperature !== undefined) els.tempVal.innerText = data.temperature;
+            if (data.humidity !== undefined) els.humVal.innerText = data.humidity;
+            if (data.light !== undefined) els.lightVal.innerText = data.light;
+            
+            const now = new Date();
+            els.lastUpdated.innerText = `Last updated: ${now.toLocaleTimeString()}`;
+        }
+
+        function renderPlantGrid() {
+            els.plantGrid.innerHTML = PLANT_TYPES.map(plant => {
+                const isSelected = state.selectedPlant === plant.id;
+                const baseClasses = "text-left p-4 rounded-2xl border-2 transition-all cursor-pointer ";
+                const colorClasses = isSelected 
+                    ? "border-green-500 bg-green-50 shadow-sm" 
+                    : "border-gray-100 bg-white hover:border-green-200 hover:bg-gray-50";
+                const titleColor = isSelected ? "text-green-800" : "text-gray-800";
+                const dotHtml = isSelected ? `<div class="h-3 w-3 rounded-full bg-green-500 mt-1"></div>` : '';
+
+                return `
+                    <button type="button" onclick="selectPlant('${plant.id}')" class="${baseClasses} ${colorClasses}">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold ${titleColor}">${plant.name}</h3>
+                            ${dotHtml}
+                        </div>
+                        <div class="text-xs space-y-1 text-gray-500">
+                            <p class="flex justify-between">
+                                <span>Ideal Temp:</span> <span class="font-medium text-gray-700">${plant.idealTemp}</span>
+                            </p>
+                            <p class="flex justify-between">
+                                <span>Ideal Hum:</span> <span class="font-medium text-gray-700">${plant.idealHum}</span>
+                            </p>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+
+            const selectedPlantObj = PLANT_TYPES.find(p => p.id === state.selectedPlant);
+            els.selectedPlantName.innerText = selectedPlantObj ? selectedPlantObj.name : '';
+        }
+
+        // Global function for inline onclick handler
+        window.selectPlant = function(plantId) {
+            state.selectedPlant = plantId;
+            renderPlantGrid();
+            
+            // Update hidden form inputs
+            const plantInfo = PLANT_TYPES.find(p => p.id === plantId);
+            document.getElementById('selected-plant-input').value = plantId;
+            document.getElementById('plant-name-input').value = plantInfo ? plantInfo.name : '';
+        }
+
+        // // --- Mock Data Logic ---
+        function generateMockData() {
+            // We wrap the mustache tags in quotes so if they are empty, 
+            // the JavaScript sees an empty string "" instead of a syntax error.
+            const rawTemp = "{{payload.temp}}";
+            const rawHum  = "{{payload.humidity}}";
+            const rawLight = "{{payload.light}}";
+
+            const mockData = {
+                // We convert the string to a number, or use a default (0) if it's empty
+                temperature: rawTemp ? parseFloat(rawTemp).toFixed(1) : (0).toFixed(1),
+                humidity: rawHum ? parseInt(rawHum) : 0,
+                light: rawLight ? parseInt(rawLight) : 0
+            };
+            
+            state.sensors = mockData;
+            updateSensorUI(mockData);
+        }
+
+        function startMockData() {
+            if (mockDataInterval) {
+                clearInterval(mockDataInterval);
+            }
+            
+            generateMockData(); // Initial data
+            mockDataInterval = setInterval(generateMockData, state.updateInterval);
+        }
+
+        function stopMockData() {
+            if (mockDataInterval) {
+                clearInterval(mockDataInterval);
+                mockDataInterval = null;
+            }
+        }
+
+        function togglePause() {
+            state.isPaused = !state.isPaused;
+            
+            if (state.isPaused) {
+                stopMockData();
+                els.pauseBtn.className = "px-6 py-2 rounded-xl font-medium transition-colors border bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200";
+                els.pauseBtn.innerText = "Resume Updates";
+            } else {
+                startMockData();
+                els.pauseBtn.className = "px-6 py-2 rounded-xl font-medium transition-colors border bg-white text-purple-600 border-purple-200 hover:bg-purple-50";
+                els.pauseBtn.innerText = "Pause Updates";
+            }
+        }
+
+        // --- Save Configuration ---
+        function setSaveButtonStatus(status) {
+            els.saveBtn.disabled = true;
+            els.saveSuccessMsg.classList.add('hidden');
+
+            if (status === 'saving') {
+                els.saveBtn.className = "flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-green-600 text-white";
+                els.saveBtnText.innerText = "Saving...";
+                els.saveBtnIcon.className = "ph ph-spinner text-lg animate-spin";
+            } else if (status === 'success') {
+                els.saveBtn.className = "flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-emerald-500 text-white hover:bg-emerald-600";
+                els.saveBtnText.innerText = "Saved";
+                els.saveBtnIcon.className = "ph ph-check-circle text-lg";
+                els.saveSuccessMsg.classList.remove('hidden');
+            } else {
+                // Default
+                els.saveBtn.disabled = false;
+                els.saveBtn.className = "flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-green-600 text-white hover:bg-green-700 hover:shadow-md";
+                els.saveBtnText.innerText = "Save Configuration";
+                els.saveBtnIcon.className = "ph ph-check text-lg";
+            }
+        }
+
+        function saveConfiguration() {
+            const plantInfo = PLANT_TYPES.find(p => p.id === state.selectedPlant);
+            const config = {
+                plant: plantInfo.id,
+                plantName: plantInfo.name,
+                updateInterval: state.updateInterval,
+                timestamp: Date.now()
+            };
+
+            setSaveButtonStatus('saving');
+            
+            // Simulate saving to localStorage or backend
+            setTimeout(() => {
+                localStorage.setItem('smartPotConfig', JSON.stringify(config));
+                console.log('Configuration saved:', config);
+                
+                // Update form inputs and submit
+                els.selectedPlantInput.value = config.plant;
+                els.plantNameInput.value = config.plantName;
+                
+                setSaveButtonStatus('success');
+                
+                // Submit form to /success
+                els.plantForm.submit();
+            }, 800);
+        }
+
+        // Start app
+        init();
+
+    </script>
+</body>
+</html>

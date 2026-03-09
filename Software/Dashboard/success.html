@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Saved - Smart Pot</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons for UI icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        body { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 selection:bg-green-100 min-h-screen">
+
+    <!-- Top Navigation Bar -->
+    <nav class="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10 shadow-sm">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-green-500 p-2 rounded-xl text-white flex items-center justify-center">
+                    <i class="ph ph-leaf text-2xl"></i>
+                </div>
+                <h1 class="text-xl font-bold tracking-tight text-gray-900">Smart Pot Dashboard</h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <!-- Data Source Status Indicator -->
+                <div class="flex items-center space-x-2 text-sm font-medium">
+                    <span class="flex items-center text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                        <i class="ph ph-database text-base mr-2"></i> Mock Data
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-6 py-8">
+        <!-- Success Message Section -->
+        <section class="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="p-8 md:p-12 text-center">
+                <!-- Success Icon -->
+                <div class="flex justify-center mb-6">
+                    <div class="bg-emerald-100 p-6 rounded-full text-emerald-600 flex items-center justify-center">
+                        <i class="ph ph-check-circle text-5xl"></i>
+                    </div>
+                </div>
+
+                <!-- Success Title -->
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Plant Configuration Saved!</h2>
+                
+                <!-- Success Description -->
+                <p class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+                    Your Smart Pot has been successfully configured with the new plant settings. The care algorithms will now adjust to provide optimal conditions for your plant.
+                </p>
+
+                <!-- Configuration Details -->
+                <div class="bg-gray-50 rounded-2xl p-6 mb-8 max-w-md mx-auto">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Configuration Details</h3>
+                    <div class="space-y-3 text-left">
+                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                            <span class="text-sm text-gray-600">Plant Type:</span>
+                            <span id="selected-plant" class="font-medium text-gray-800">Loading...</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                            <span class="text-sm text-gray-600">Configuration ID:</span>
+                            <span id="config-id" class="font-mono text-sm text-gray-800">Loading...</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2">
+                            <span class="text-sm text-gray-600">Saved At:</span>
+                            <span id="saved-time" class="font-medium text-gray-800">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <a href="Dashboard.html" class="flex items-center space-x-2 px-8 py-3 rounded-xl font-medium transition-all shadow-sm bg-green-600 text-white hover:bg-green-700 hover:shadow-md">
+                        <i class="ph ph-arrow-left text-lg"></i>
+                        <span>Back to Dashboard</span>
+                    </a>
+                    
+                    <button onclick="window.print()" class="flex items-center space-x-2 px-8 py-3 rounded-xl font-medium transition-all border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                        <i class="ph ph-printer text-lg"></i>
+                        <span>Print Confirmation</span>
+                    </button>
+                </div>
+
+                <!-- Additional Info -->
+                <div class="mt-8 text-sm text-gray-500 bg-blue-50 p-4 rounded-lg border border-blue-100 max-w-2xl mx-auto">
+                    <p class="flex items-start">
+                        <i class="ph ph-info text-blue-500 mr-2 mt-0.5"></i>
+                        <span>Your plant configuration has been saved to the Smart Pot's memory. The system will now monitor and adjust environmental conditions based on your plant's specific needs.</span>
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Parse URL parameters to get form data
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const formData = {};
+            
+            // Try to get data from URL parameters or localStorage
+            const plant = params.get('plant') || localStorage.getItem('lastPlant');
+            const plantName = params.get('plantName') || localStorage.getItem('lastPlantName');
+            
+            if (plant) formData.plant = plant;
+            if (plantName) formData.plantName = plantName;
+            
+            return formData;
+        }
+
+        // Update the page with configuration details
+        function updateSuccessPage() {
+            const formData = getUrlParams();
+            
+            // Update plant name
+            const plantElement = document.getElementById('selected-plant');
+            if (formData.plantName) {
+                plantElement.textContent = formData.plantName;
+            } else {
+                plantElement.textContent = 'Unknown Plant';
+            }
+            
+            // Generate configuration ID
+            const configId = 'CFG-' + Date.now().toString(36).toUpperCase();
+            document.getElementById('config-id').textContent = configId;
+            
+            // Set saved time
+            const now = new Date();
+            document.getElementById('saved-time').textContent = now.toLocaleString();
+            
+            // Store in localStorage for reference
+            localStorage.setItem('lastPlant', formData.plant || '');
+            localStorage.setItem('lastPlantName', formData.plantName || '');
+            localStorage.setItem('lastConfigId', configId);
+            localStorage.setItem('lastSavedTime', now.toISOString());
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', updateSuccessPage);
+    </script>
+</body>
+</html>

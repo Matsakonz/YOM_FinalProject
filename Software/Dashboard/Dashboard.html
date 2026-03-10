@@ -75,6 +75,47 @@
             </div>
         </div>
 
+        <!-- Plant Configuration Section -->
+        <div id="plant-config-content" class="hidden">
+            <section class="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden mt-8">
+                <div class="p-6 md:p-8">
+                    <div class="flex items-center space-x-3 mb-6">
+                        <div class="bg-green-100 p-2 rounded-lg text-green-600 flex items-center justify-center">
+                            <i class="ph ph-plant text-2xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800">Plant Configuration</h2>
+                            <p class="text-sm text-gray-500">Select the plant currently in the pot to adjust care algorithms.</p>
+                        </div>
+                    </div>
+
+                    <form id="plant-form" method="POST" action="/success">
+                        <div id="plant-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+                            <!-- Plant buttons injected via JS -->
+                        </div>
+
+                        <input type="hidden" id="selected-plant-input" name="plant" value="">
+                        <input type="hidden" name="plantName" id="plant-name-input" value="">
+                        
+                        <div class="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-gray-100">
+                            <p class="text-sm text-gray-500 mb-4 sm:mb-0">
+                                Currently selected: 
+                                <strong id="selected-plant-name" class="text-gray-800 ml-1">Monstera Deliciosa</strong>
+                            </p>
+                            
+                            <div class="flex flex-col items-end">
+                                <button type="submit" id="save-btn" class="flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-green-600 text-white hover:bg-green-700 hover:shadow-md">
+                                    <span id="save-btn-text">Save Configuration</span>
+                                    <i id="save-btn-icon" class="ph ph-check text-lg"></i>
+                                </button>
+                                <span id="save-success-msg" class="text-xs text-emerald-500 mt-2 hidden">Configuration saved successfully!</span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+
         <!-- Live Sensor Data Section -->
         <section>
             <div class="flex justify-between items-end mb-4">
@@ -125,42 +166,22 @@
             </div>
         </section>
 
-        <!-- Plant Configuration Section -->
-        <section class="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden mt-8">
+        <!-- Plant Detail Display Section -->
+        <section id="plant-detail-section" class="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden mt-8">
             <div class="p-6 md:p-8">
                 <div class="flex items-center space-x-3 mb-6">
-                    <div class="bg-green-100 p-2 rounded-lg text-green-600 flex items-center justify-center">
-                        <i class="ph ph-plant text-2xl"></i>
+                    <div class="bg-green-600 p-2 rounded-lg text-white flex items-center justify-center">
+                        <i class="ph ph-info text-2xl"></i>
                     </div>
                     <div>
-                        <h2 class="text-xl font-bold text-gray-800">Plant Configuration</h2>
-                        <p class="text-sm text-gray-500">Select the plant currently in the pot to adjust care algorithms.</p>
+                        <h2 class="text-xl font-bold text-gray-800">Plant Care Guide</h2>
+                        <p class="text-sm text-gray-600">Detailed information for your selected plant</p>
                     </div>
                 </div>
 
-                <form id="plant-form" method="POST" action="/success">
-                    <div id="plant-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-                        <!-- Plant buttons injected via JS -->
-                    </div>
-
-                    <input type="hidden" id="selected-plant-input" name="plant" value="">
-                    <input type="hidden" name="plantName" id="plant-name-input" value="">
-                    
-                    <div class="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-gray-100">
-                        <p class="text-sm text-gray-500 mb-4 sm:mb-0">
-                            Currently selected: 
-                            <strong id="selected-plant-name" class="text-gray-800 ml-1">Monstera Deliciosa</strong>
-                        </p>
-                        
-                        <div class="flex flex-col items-end">
-                            <button type="submit" id="save-btn" class="flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-green-600 text-white hover:bg-green-700 hover:shadow-md">
-                                <span id="save-btn-text">Save Configuration</span>
-                                <i id="save-btn-icon" class="ph ph-check text-lg"></i>
-                            </button>
-                            <span id="save-success-msg" class="text-xs text-emerald-500 mt-2 hidden">Configuration saved successfully!</span>
-                        </div>
-                    </div>
-                </form>
+                <div id="plant-detail-content" class="space-y-6">
+                    <!-- Plant details will be injected here -->
+                </div>
             </div>
         </section>
 
@@ -169,17 +190,97 @@
     <script>
         // --- State Management ---
         const PLANT_TYPES = [
-            { id: 'monstera', name: 'Monstera Deliciosa', idealTemp: '20-30°C', idealHum: '60-80%' },
-            { id: 'snake_plant', name: 'Snake Plant', idealTemp: '15-30°C', idealHum: '30-50%' },
-            { id: 'fern', name: 'Boston Fern', idealTemp: '15-25°C', idealHum: '70-90%' },
-            { id: 'succulent', name: 'Succulent Mix', idealTemp: '18-28°C', idealHum: '20-40%' },
-            { id: 'basil', name: 'Sweet Basil', idealTemp: '20-25°C', idealHum: '50-60%' },
-            { id: 'calathea', name: 'Calathea', idealTemp: '18-24°C', idealHum: '70-85%' }
+            { 
+                id: 'monstera', 
+                name: 'Monstera Deliciosa', 
+                idealTemp: '20-30°C', 
+                idealHum: '60-80%',
+                description: 'Popular tropical houseplant known for its large, glossy leaves with natural holes.',
+                waterFrequency: 'Weekly',
+                lightRequirement: 'Bright, indirect light',
+                soilType: 'Well-draining potting mix',
+                fertilizer: 'Monthly during growing season',
+                commonIssues: 'Yellow leaves (overwatering), brown tips (low humidity)',
+                growthRate: 'Fast',
+                maxHeight: '3-8 feet indoors'
+            },
+            { 
+                id: 'snake_plant', 
+                name: 'Snake Plant', 
+                idealTemp: '15-30°C', 
+                idealHum: '30-50%',
+                description: 'Hardy succulent with upright sword-like leaves, excellent for beginners.',
+                waterFrequency: 'Bi-weekly',
+                lightRequirement: 'Tolerates low to bright light',
+                soilType: 'Cactus or succulent mix',
+                fertilizer: 'Every 2-3 months',
+                commonIssues: 'Root rot (overwatering), mushy leaves',
+                growthRate: 'Slow',
+                maxHeight: '2-4 feet'
+            },
+            { 
+                id: 'fern', 
+                name: 'Boston Fern', 
+                idealTemp: '15-25°C', 
+                idealHum: '70-90%',
+                description: 'Lush, feathery fern that thrives in humid environments.',
+                waterFrequency: 'Keep soil moist',
+                lightRequirement: 'Bright, indirect light',
+                soilType: 'Rich, organic potting mix',
+                fertilizer: 'Monthly in growing season',
+                commonIssues: 'Brown fronds (low humidity), yellow leaves',
+                growthRate: 'Medium',
+                maxHeight: '2-3 feet'
+            },
+            { 
+                id: 'succulent', 
+                name: 'Succulent Mix', 
+                idealTemp: '18-28°C', 
+                idealHum: '20-40%',
+                description: 'Diverse collection of drought-tolerant plants with fleshy leaves.',
+                waterFrequency: 'When soil is completely dry',
+                lightRequirement: 'Bright, direct light',
+                soilType: 'Sandy, well-draining mix',
+                fertilizer: 'Monthly during spring/summer',
+                commonIssues: 'Stretching (insufficient light), root rot',
+                growthRate: 'Slow to medium',
+                maxHeight: '6-12 inches'
+            },
+            { 
+                id: 'basil', 
+                name: 'Sweet Basil', 
+                idealTemp: '20-25°C', 
+                idealHum: '50-60%',
+                description: 'Aromatic herb popular in cooking, grows quickly with proper care.',
+                waterFrequency: 'When top inch is dry',
+                lightRequirement: '6-8 hours of direct sun',
+                soilType: 'Organic, well-draining soil',
+                fertilizer: 'Every 2 weeks',
+                commonIssues: 'Leggy growth (insufficient light), yellowing leaves',
+                growthRate: 'Fast',
+                maxHeight: '2-3 feet'
+            },
+            { 
+                id: 'calathea', 
+                name: 'Calathea', 
+                idealTemp: '18-24°C', 
+                idealHum: '70-85%',
+                description: 'Stunning foliage plant with intricate patterns that move with light.',
+                waterFrequency: 'Keep soil evenly moist',
+                lightRequirement: 'Medium, indirect light',
+                soilType: 'Peat-based potting mix',
+                fertilizer: 'Monthly in growing season',
+                commonIssues: 'Crisping edges (low humidity), leaf curling',
+                growthRate: 'Medium',
+                maxHeight: '1-2 feet'
+            }
         ];
 
         let state = {
             showSettings: false,
+            showPlantConfig: false,
             selectedPlant: PLANT_TYPES[0].id,
+            originalSelectedPlant: PLANT_TYPES[0].id,
             sensors: { temperature: 0, humidity: 0, light: 0 },
             updateInterval: 2000,
             isPaused: false
@@ -200,6 +301,7 @@
             lightVal: document.getElementById('light-val'),
             lastUpdated: document.getElementById('last-updated'),
             
+            plantConfigContent: document.getElementById('plant-config-content'),
             plantGrid: document.getElementById('plant-grid'),
             selectedPlantName: document.getElementById('selected-plant-name'),
             plantForm: document.getElementById('plant-form'),
@@ -208,21 +310,48 @@
             saveBtn: document.getElementById('save-btn'),
             saveBtnText: document.getElementById('save-btn-text'),
             saveBtnIcon: document.getElementById('save-btn-icon'),
-            saveSuccessMsg: document.getElementById('save-success-msg')
+            saveSuccessMsg: document.getElementById('save-success-msg'),
+            plantDetailContent: document.getElementById('plant-detail-content')
         };
 
         // --- Initialization ---
         function init() {
+            loadSavedConfiguration();
             renderPlantGrid();
+            renderPlantDetail();
             setupEventListeners();
             startMockData();
+            
+            // Scroll to selected plant after a short delay to ensure rendering is complete
+            setTimeout(() => {
+                scrollToSelectedPlant();
+            }, 100);
+        }
+
+        function loadSavedConfiguration() {
+            const savedConfig = localStorage.getItem('smartPotConfig');
+            if (savedConfig) {
+                try {
+                    const config = JSON.parse(savedConfig);
+                    if (config.plant) {
+                        state.selectedPlant = config.plant;
+                        state.originalSelectedPlant = config.plant;
+                        console.log('Loaded saved configuration:', config);
+                    }
+                } catch (error) {
+                    console.error('Error loading saved configuration:', error);
+                }
+            }
+            updateSaveButtonState();
         }
 
         // --- Event Listeners ---
         function setupEventListeners() {
             els.toggleSettingsBtn.addEventListener('click', () => {
                 state.showSettings = !state.showSettings;
+                state.showPlantConfig = !state.showPlantConfig;
                 els.settingsPanel.classList.toggle('hidden', !state.showSettings);
+                els.plantConfigContent.classList.toggle('hidden', !state.showPlantConfig);
             });
 
             els.updateInterval.addEventListener('change', (e) => {
@@ -308,22 +437,164 @@
                 `;
             }).join('');
 
-            const selectedPlantObj = PLANT_TYPES.find(p => p.id === state.selectedPlant);
-            els.selectedPlantName.innerText = selectedPlantObj ? selectedPlantObj.name : '';
-        }
+    const selectedPlantObj = PLANT_TYPES.find(p => p.id === state.selectedPlant);
+    els.selectedPlantName.innerText = selectedPlantObj ? selectedPlantObj.name : '';
+}
 
-        // Global function for inline onclick handler
-        window.selectPlant = function(plantId) {
-            state.selectedPlant = plantId;
-            renderPlantGrid();
+// Global function for inline onclick handler
+window.selectPlant = function(plantId) {
+    state.selectedPlant = plantId;
+    renderPlantGrid();
+    renderPlantDetail();
+    updateSaveButtonState();
+    
+    // Update hidden form inputs
+    const plantInfo = PLANT_TYPES.find(p => p.id === plantId);
+    document.getElementById('selected-plant-input').value = plantId;
+    document.getElementById('plant-name-input').value = plantInfo ? plantInfo.name : '';
+}
+
+function renderPlantDetail() {
+    const selectedPlantObj = PLANT_TYPES.find(p => p.id === state.selectedPlant);
+    if (!selectedPlantObj) {
+        els.plantDetailContent.innerHTML = '<p class="text-gray-500">No plant selected.</p>';
+        return;
+    }
+
+    els.plantDetailContent.innerHTML = `
+        <div class="bg-white rounded-2xl p-6 border border-green-100">
+            <div class="flex items-start justify-between mb-4">
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">${selectedPlantObj.name}</h3>
+                    <p class="text-gray-600 leading-relaxed">${selectedPlantObj.description}</p>
+                </div>
+                <div class="bg-green-100 px-3 py-1 rounded-full">
+                    <span class="text-green-800 font-medium text-sm">${selectedPlantObj.growthRate} Growing</span>
+                </div>
+            </div>
             
-            // Update hidden form inputs
-            const plantInfo = PLANT_TYPES.find(p => p.id === plantId);
-            document.getElementById('selected-plant-input').value = plantId;
-            document.getElementById('plant-name-input').value = plantInfo ? plantInfo.name : '';
-        }
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <!-- Care Requirements -->
+                <div class="space-y-4">
+                    <h4 class="font-semibold text-gray-800 flex items-center">
+                        <i class="ph ph-heart text-green-600 mr-2"></i>
+                        Care Requirements
+                    </h4>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="ph ph-drop text-blue-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-700">Watering</p>
+                                <p class="text-sm text-gray-500">${selectedPlantObj.waterFrequency}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                                <i class="ph ph-sun text-amber-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-700">Light</p>
+                                <p class="text-sm text-gray-500">${selectedPlantObj.lightRequirement}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                <i class="ph ph-thermometer text-orange-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-700">Temperature</p>
+                                <p class="text-sm text-gray-500">${selectedPlantObj.idealTemp}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center">
+                                <i class="ph ph-humidity text-cyan-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-700">Humidity</p>
+                                <p class="text-sm text-gray-500">${selectedPlantObj.idealHum}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Additional Info -->
+                <div class="space-y-4">
+                    <h4 class="font-semibold text-gray-800 flex items-center">
+                        <i class="ph ph-info text-green-600 mr-2"></i>
+                        Additional Information
+                    </h4>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mt-0.5">
+                                <i class="ph ph-plant text-green-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-700">Soil Type</p>
+                                <p class="text-sm text-gray-500">${selectedPlantObj.soilType}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mt-0.5">
+                                <i class="ph ph-flask text-purple-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-700">Fertilizer</p>
+                                <p class="text-sm text-gray-500">${selectedPlantObj.fertilizer}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center mt-0.5">
+                                <i class="ph ph-ruler text-emerald-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-700">Max Height</p>
+                                <p class="text-sm text-gray-500">${selectedPlantObj.maxHeight}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mt-0.5">
+                                <i class="ph ph-warning text-red-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-700">Common Issues</p>
+                                <p class="text-sm text-gray-500">${selectedPlantObj.commonIssues}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
 
-        // // --- Mock Data Logic ---
+function updateSaveButtonState() {
+    const hasChanges = state.selectedPlant !== state.originalSelectedPlant;
+            
+    if (hasChanges) {
+        els.saveBtn.disabled = false;
+        els.saveBtn.className = "flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-green-600 text-white hover:bg-green-700 hover:shadow-md";
+        els.saveBtnText.innerText = "Save Configuration";
+        els.saveBtnIcon.className = "ph ph-check text-lg";
+    } else {
+        els.saveBtn.disabled = true;
+        els.saveBtn.className = "flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-gray-400 text-white cursor-not-allowed";
+        els.saveBtnText.innerText = "Save Configuration";
+        els.saveBtnIcon.className = "ph ph-check text-lg";
+    }
+}
+
+        // --- Mock Data Logic ---
         function generateMockData() {
             // We wrap the mustache tags in quotes so if they are empty, 
             // the JavaScript sees an empty string "" instead of a syntax error.
@@ -417,9 +688,31 @@
                 
                 setSaveButtonStatus('success');
                 
+                // Scroll to selected plant before submitting
+                scrollToSelectedPlant();
+                
                 // Submit form to /success
                 els.plantForm.submit();
             }, 800);
+        }
+
+        function scrollToSelectedPlant() {
+            const selectedPlantId = state.selectedPlant;
+            const selectedButton = document.querySelector(`button[onclick="selectPlant('${selectedPlantId}')"]`);
+            
+            if (selectedButton) {
+                selectedButton.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                    inline: 'center'
+                });
+                
+                // Add a brief highlight effect
+                selectedButton.classList.add('ring-4', 'ring-green-300', 'ring-opacity-50');
+                setTimeout(() => {
+                    selectedButton.classList.remove('ring-4', 'ring-green-300', 'ring-opacity-50');
+                }, 2000);
+            }
         }
 
         // Start app

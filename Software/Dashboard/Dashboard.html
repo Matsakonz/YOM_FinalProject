@@ -4,80 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Pot Dashboard</title>
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Phosphor Icons for UI icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <style>
-        /* Custom scrollbar and minor tweaks */
         body { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 selection:bg-green-100 min-h-screen">
 
-    <!-- Top Navigation Bar -->
     <nav class="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10 shadow-sm">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <div class="bg-green-500 p-2 rounded-xl text-white flex items-center justify-center">
                     <i class="ph ph-leaf text-2xl"></i>
                 </div>
-                <h1 class="text-xl font-bold tracking-tight text-gray-900">Smart Pot Dashboard</h1>
+                <h1 class="text-xl font-bold tracking-tight text-gray-900">Smart YOM Dashboard</h1>
             </div>
             
             <div class="flex items-center space-x-4">
-                <!-- Data Source Status Indicator -->
-                <div class="flex items-center space-x-2 text-sm font-medium">
-                    <span class="flex items-center text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
-                        <i class="ph ph-database text-base mr-2"></i> Mock Data
+                <div class="flex items-center text-sm font-medium" id="connection-status">
+                    <span id="status-connecting" class="hidden flex items-center text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                        <i class="ph ph-spinner animate-spin text-base mr-2"></i> Connecting...
+                    </span>
+                    <span id="status-connected" class="hidden flex items-center text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                        <i class="ph ph-wifi-high text-base mr-2"></i> Connected
+                    </span>
+                    <span id="status-disconnected" class="hidden flex items-center text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-200">
+                        <i class="ph ph-wifi-slash text-base mr-2"></i> Disconnected
                     </span>
                 </div>
-
-                <button id="toggle-settings-btn" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+                
+                <button id="toggle-settings-btn" class="p-2 text-gray-400 bg-transparent hover:bg-gray-100 rounded-full transition-colors" title="Toggle Plant Configuration">
                     <i class="ph ph-gear text-xl"></i>
                 </button>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
     <main class="max-w-5xl mx-auto px-6 py-8 space-y-8">
 
-        <!-- Settings Panel (Collapsible) -->
-        <div id="settings-panel" class="hidden bg-white p-6 rounded-2xl border border-gray-200 shadow-sm mb-6 transition-all">
-            <h2 class="text-lg font-semibold mb-4 flex items-center">
-                <i class="ph ph-gear text-lg mr-2 text-gray-500"></i>
-                Mock Data Settings
-            </h2>
-            <div class="flex flex-col sm:flex-row gap-4">
-                <div class="flex-1">
-                    <label class="block text-sm font-medium text-gray-600 mb-1">Update Interval</label>
-                    <select id="update-interval" class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all">
-                        <option value="1000">1 second</option>
-                        <option value="2000" selected>2 seconds</option>
-                        <option value="5000">5 seconds</option>
-                        <option value="10000">10 seconds</option>
-                    </select>
-                </div>
-                <div class="flex items-end space-x-3">
-                    <button id="refresh-btn" class="px-6 py-2 bg-gray-800 text-white rounded-xl font-medium hover:bg-gray-700 transition-colors">
-                        Refresh Now
-                    </button>
-                    <button id="pause-btn" class="px-6 py-2 rounded-xl font-medium transition-colors border bg-white text-purple-600 border-purple-200 hover:bg-purple-50">
-                        Pause Updates
-                    </button>
-                </div>
-            </div>
-            <div class="mt-4 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <p><strong>Mock Data Mode:</strong> This dashboard is displaying simulated sensor data. In production, this would connect to real sensor hardware via WebSocket.</p>
-            </div>
-        </div>
-
-        <!-- Plant Configuration Section -->
-        <div id="plant-config-content" class="hidden">
-            <section class="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden mt-8">
+        <div id="plant-config-content" class="hidden transition-all duration-300">
+            <section class="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
                 <div class="p-6 md:p-8">
                     <div class="flex items-center space-x-3 mb-6">
                         <div class="bg-green-100 p-2 rounded-lg text-green-600 flex items-center justify-center">
@@ -91,8 +60,7 @@
 
                     <form id="plant-form" method="POST" action="/success">
                         <div id="plant-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-                            <!-- Plant buttons injected via JS -->
-                        </div>
+                            </div>
 
                         <input type="hidden" id="selected-plant-input" name="plant" value="">
                         <input type="hidden" name="plantName" id="plant-name-input" value="">
@@ -100,7 +68,7 @@
                         <div class="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-gray-100">
                             <p class="text-sm text-gray-500 mb-4 sm:mb-0">
                                 Currently selected: 
-                                <strong id="selected-plant-name" class="text-gray-800 ml-1">Monstera Deliciosa</strong>
+                                <strong id="selected-plant-name" class="text-gray-800 ml-1">Loading...</strong>
                             </p>
                             
                             <div class="flex flex-col items-end">
@@ -116,7 +84,6 @@
             </section>
         </div>
 
-        <!-- Live Sensor Data Section -->
         <section>
             <div class="flex justify-between items-end mb-4">
                 <h2 class="text-xl font-bold text-gray-800">Live Pot Status</h2>
@@ -124,7 +91,6 @@
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Temperature -->
                 <div class="p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4 bg-white transition-all hover:shadow-md">
                     <div class="p-4 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center">
                         <i class="ph ph-thermometer text-3xl"></i>
@@ -132,12 +98,11 @@
                     <div>
                         <p class="text-sm font-medium text-gray-500 mb-1">Soil Temperature</p>
                         <div class="flex items-baseline space-x-1">
-                            <h3 id="temp-val" class="text-3xl font-bold text-gray-800">"0"</h3>
+                            <h3 id="temp-val" class="text-3xl font-bold text-gray-800">--</h3>
                             <span class="text-lg text-gray-400 font-medium">°C</span>
                         </div>
                     </div>
                 </div>
-                <!-- Humidity -->
                 <div class="p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4 bg-white transition-all hover:shadow-md">
                     <div class="p-4 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center">
                         <i class="ph ph-drop text-3xl"></i>
@@ -145,12 +110,11 @@
                     <div>
                         <p class="text-sm font-medium text-gray-500 mb-1">Soil Moisture</p>
                         <div class="flex items-baseline space-x-1">
-                            <h3 id="hum-val" class="text-3xl font-bold text-gray-800">0</h3>
+                            <h3 id="hum-val" class="text-3xl font-bold text-gray-800">--</h3>
                             <span class="text-lg text-gray-400 font-medium">%</span>
                         </div>
                     </div>
                 </div>
-                <!-- Light -->
                 <div class="p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4 bg-white transition-all hover:shadow-md">
                     <div class="p-4 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center">
                         <i class="ph ph-sun text-3xl"></i>
@@ -158,7 +122,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-500 mb-1">Light Exposure</p>
                         <div class="flex items-baseline space-x-1">
-                            <h3 id="light-val" class="text-3xl font-bold text-gray-800">0</h3>
+                            <h3 id="light-val" class="text-3xl font-bold text-gray-800">--</h3>
                             <span class="text-lg text-gray-400 font-medium">lux</span>
                         </div>
                     </div>
@@ -166,8 +130,7 @@
             </div>
         </section>
 
-        <!-- Plant Detail Display Section -->
-        <section id="plant-detail-section" class="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden mt-8">
+        <section id="plant-detail-section" class="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
             <div class="p-6 md:p-8">
                 <div class="flex items-center space-x-3 mb-6">
                     <div class="bg-green-600 p-2 rounded-lg text-white flex items-center justify-center">
@@ -180,7 +143,7 @@
                 </div>
 
                 <div id="plant-detail-content" class="space-y-6">
-                    <!-- Plant details will be injected here -->
+                    <p class="text-gray-500">Loading plant data...</p>
                 </div>
             </div>
         </section>
@@ -188,120 +151,31 @@
     </main>
 
     <script>
-        // --- State Management ---
-        const PLANT_TYPES = [
-            { 
-                id: 'monstera', 
-                name: 'Monstera Deliciosa', 
-                idealTemp: '20-30°C', 
-                idealHum: '60-80%',
-                description: 'Popular tropical houseplant known for its large, glossy leaves with natural holes.',
-                waterFrequency: 'Weekly',
-                lightRequirement: 'Bright, indirect light',
-                soilType: 'Well-draining potting mix',
-                fertilizer: 'Monthly during growing season',
-                commonIssues: 'Yellow leaves (overwatering), brown tips (low humidity)',
-                growthRate: 'Fast',
-                maxHeight: '3-8 feet indoors'
-            },
-            { 
-                id: 'snake_plant', 
-                name: 'Snake Plant', 
-                idealTemp: '15-30°C', 
-                idealHum: '30-50%',
-                description: 'Hardy succulent with upright sword-like leaves, excellent for beginners.',
-                waterFrequency: 'Bi-weekly',
-                lightRequirement: 'Tolerates low to bright light',
-                soilType: 'Cactus or succulent mix',
-                fertilizer: 'Every 2-3 months',
-                commonIssues: 'Root rot (overwatering), mushy leaves',
-                growthRate: 'Slow',
-                maxHeight: '2-4 feet'
-            },
-            { 
-                id: 'fern', 
-                name: 'Boston Fern', 
-                idealTemp: '15-25°C', 
-                idealHum: '70-90%',
-                description: 'Lush, feathery fern that thrives in humid environments.',
-                waterFrequency: 'Keep soil moist',
-                lightRequirement: 'Bright, indirect light',
-                soilType: 'Rich, organic potting mix',
-                fertilizer: 'Monthly in growing season',
-                commonIssues: 'Brown fronds (low humidity), yellow leaves',
-                growthRate: 'Medium',
-                maxHeight: '2-3 feet'
-            },
-            { 
-                id: 'succulent', 
-                name: 'Succulent Mix', 
-                idealTemp: '18-28°C', 
-                idealHum: '20-40%',
-                description: 'Diverse collection of drought-tolerant plants with fleshy leaves.',
-                waterFrequency: 'When soil is completely dry',
-                lightRequirement: 'Bright, direct light',
-                soilType: 'Sandy, well-draining mix',
-                fertilizer: 'Monthly during spring/summer',
-                commonIssues: 'Stretching (insufficient light), root rot',
-                growthRate: 'Slow to medium',
-                maxHeight: '6-12 inches'
-            },
-            { 
-                id: 'basil', 
-                name: 'Sweet Basil', 
-                idealTemp: '20-25°C', 
-                idealHum: '50-60%',
-                description: 'Aromatic herb popular in cooking, grows quickly with proper care.',
-                waterFrequency: 'When top inch is dry',
-                lightRequirement: '6-8 hours of direct sun',
-                soilType: 'Organic, well-draining soil',
-                fertilizer: 'Every 2 weeks',
-                commonIssues: 'Leggy growth (insufficient light), yellowing leaves',
-                growthRate: 'Fast',
-                maxHeight: '2-3 feet'
-            },
-            { 
-                id: 'calathea', 
-                name: 'Calathea', 
-                idealTemp: '18-24°C', 
-                idealHum: '70-85%',
-                description: 'Stunning foliage plant with intricate patterns that move with light.',
-                waterFrequency: 'Keep soil evenly moist',
-                lightRequirement: 'Medium, indirect light',
-                soilType: 'Peat-based potting mix',
-                fertilizer: 'Monthly in growing season',
-                commonIssues: 'Crisping edges (low humidity), leaf curling',
-                growthRate: 'Medium',
-                maxHeight: '1-2 feet'
-            }
-        ];
-
-        let state = {
-            showSettings: false,
-            showPlantConfig: false,
-            selectedPlant: PLANT_TYPES[0].id,
-            originalSelectedPlant: PLANT_TYPES[0].id,
-            sensors: { temperature: 0, humidity: 0, light: 0 },
-            updateInterval: 2000,
-            isPaused: false
+        const nodeRedData = {
+            temp: "{{{flow.payload.temp}}}",
+            humidity: "{{{flow.payload.humidity}}}",
+            light: "{{{flow.payload.light}}}",
+            status: "{{{flow.status}}}" 
         };
 
-        let mockDataInterval = null;
+        let PLANT_TYPES = [];
 
-        // --- DOM Elements ---
+        let state = {
+            showPlantConfig: false,
+            selectedPlant: null,
+            originalSelectedPlant: null
+        };
+
         const els = {
-            settingsPanel: document.getElementById('settings-panel'),
             toggleSettingsBtn: document.getElementById('toggle-settings-btn'),
-            updateInterval: document.getElementById('update-interval'),
-            refreshBtn: document.getElementById('refresh-btn'),
-            pauseBtn: document.getElementById('pause-btn'),
-            
+            plantConfigContent: document.getElementById('plant-config-content'),
+            statusConnecting: document.getElementById('status-connecting'),
+            statusConnected: document.getElementById('status-connected'),
+            statusDisconnected: document.getElementById('status-disconnected'),
             tempVal: document.getElementById('temp-val'),
             humVal: document.getElementById('hum-val'),
             lightVal: document.getElementById('light-val'),
             lastUpdated: document.getElementById('last-updated'),
-            
-            plantConfigContent: document.getElementById('plant-config-content'),
             plantGrid: document.getElementById('plant-grid'),
             selectedPlantName: document.getElementById('selected-plant-name'),
             plantForm: document.getElementById('plant-form'),
@@ -314,18 +188,129 @@
             plantDetailContent: document.getElementById('plant-detail-content')
         };
 
-        // --- Initialization ---
-        function init() {
+        async function init() {
+            await loadExternalPlantData();
             loadSavedConfiguration();
             renderPlantGrid();
             renderPlantDetail();
             setupEventListeners();
-            startMockData();
+            applyDataToScreen(nodeRedData);
+            startDataPolling();
+        }
+
+        async function loadExternalPlantData() {
+            try {
+                const response = await fetch('/plants');
+                if (response.ok) {
+                    PLANT_TYPES = await response.json();
+                    if (PLANT_TYPES.length > 0) {
+                        state.selectedPlant = PLANT_TYPES[0].id;
+                        state.originalSelectedPlant = PLANT_TYPES[0].id;
+                    }
+                } else {
+                    console.error("Failed to load plant JSON.");
+                }
+            } catch (error) {
+                console.error("Error connecting to /plants endpoint:", error);
+            }
+        }
+
+        // --- UPDATED POLLING FUNCTION ---
+        function startDataPolling() {
+            setInterval(async () => {
+                try {
+                    const response = await fetch('/data');
+                    if (response.ok) {
+                        const liveData = await response.json();
+                        
+                        // Update the screen
+                        applyDataToScreen(liveData);
+                        
+                        // Check limits and send back to Node-RED/MQTT
+                        evaluateAndSendStatus(liveData);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch live data:", error);
+                }
+            }, 2000); 
+        }
+
+        // --- NEW: FRONTEND EVALUATION & MQTT PUSH ---
+        async function evaluateAndSendStatus(sensorData) {
+            // Get the currently selected plant limits from our JSON array
+            const plantLimits = PLANT_TYPES.find(p => p.id === state.selectedPlant);
             
-            // Scroll to selected plant after a short delay to ensure rendering is complete
-            setTimeout(() => {
-                scrollToSelectedPlant();
-            }, 100);
+            if (!plantLimits) return; // Wait until data is loaded
+            
+            let statusObj = {
+                humidity: "unknown",
+                light: "unknown",
+                temperature: "unknown",
+                overall: "unknown"
+            };
+
+            // Evaluate Humidity
+            let currentHum = sensorData.humidity !== undefined ? sensorData.humidity : sensorData.hum;
+            if (currentHum !== undefined) {
+                if (currentHum < plantLimits.humidity.min) statusObj.humidity = "thirsty";
+                else if (currentHum > plantLimits.humidity.max) statusObj.humidity = "drowning";
+                else statusObj.humidity = "happy";
+            }
+
+            // Evaluate Light
+            let currentLight = sensorData.light;
+            if (currentLight !== undefined) {
+                if (currentLight < plantLimits.light.min) statusObj.light = "needs more sun";
+                else if (currentLight > plantLimits.light.max) statusObj.light = "too bright";
+                else statusObj.light = "happy";
+            }
+
+            // Evaluate Temperature
+            let currentTemp = sensorData.temp !== undefined ? sensorData.temp : sensorData.temperature;
+            if (currentTemp !== undefined) {
+                if (currentTemp < plantLimits.temperature.min) statusObj.temperature = "too cold";
+                else if (currentTemp > plantLimits.temperature.max) statusObj.temperature = "too hot";
+                else statusObj.temperature = "happy";
+            }
+
+            // Overall Status
+            if (statusObj.humidity === "happy" && statusObj.light === "happy" && statusObj.temperature === "happy") {
+                statusObj.overall = "perfect";
+            } else {
+                statusObj.overall = "needs attention";
+            }
+
+            // Send to the Node-RED /statusplant endpoint via POST
+            try {
+                await fetch('/statusplant', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(statusObj)
+                });
+            } catch (err) {
+                console.error("Failed to send evaluated status to Node-RED", err);
+            }
+        }
+
+        function applyDataToScreen(data) {
+            if (data.temp !== undefined && data.temp !== "") els.tempVal.innerText = data.temp;
+            if (data.humidity !== undefined && data.humidity !== "") els.humVal.innerText = data.humidity;
+            if (data.light !== undefined && data.light !== "") els.lightVal.innerText = data.light;
+
+            const now = new Date();
+            els.lastUpdated.innerText = `Last updated: ${now.toLocaleTimeString()}`;
+
+            els.statusConnecting.classList.add('hidden');
+            els.statusConnected.classList.add('hidden');
+            els.statusDisconnected.classList.add('hidden');
+
+            if (data.status === "Connecting...") {
+                els.statusConnecting.classList.remove('hidden');
+            } else if (data.status === "Connected") {
+                els.statusConnected.classList.remove('hidden');
+            } else if (data.status) {
+                els.statusDisconnected.classList.remove('hidden');
+            }
         }
 
         function loadSavedConfiguration() {
@@ -333,40 +318,40 @@
             if (savedConfig) {
                 try {
                     const config = JSON.parse(savedConfig);
-                    if (config.plant) {
+                    const exists = PLANT_TYPES.some(p => p.id === config.plant);
+                    if (exists) {
                         state.selectedPlant = config.plant;
                         state.originalSelectedPlant = config.plant;
-                        console.log('Loaded saved configuration:', config);
+                        
+                        // SYNC: Let Node-RED know which plant limits are active
+                        const plantInfo = PLANT_TYPES.find(p => p.id === config.plant);
+                        fetch('/success', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(plantInfo)
+                        }).catch(e => console.log("Background sync failed", e));
                     }
                 } catch (error) {
-                    console.error('Error loading saved configuration:', error);
+                    console.error('Error loading config:', error);
                 }
             }
             updateSaveButtonState();
         }
 
-        // --- Event Listeners ---
         function setupEventListeners() {
             els.toggleSettingsBtn.addEventListener('click', () => {
-                state.showSettings = !state.showSettings;
                 state.showPlantConfig = !state.showPlantConfig;
-                els.settingsPanel.classList.toggle('hidden', !state.showSettings);
                 els.plantConfigContent.classList.toggle('hidden', !state.showPlantConfig);
-            });
-
-            els.updateInterval.addEventListener('change', (e) => {
-                state.updateInterval = parseInt(e.target.value);
-                if (!state.isPaused) {
-                    stopMockData();
-                    startMockData();
+                
+                if (state.showPlantConfig) {
+                    els.toggleSettingsBtn.classList.add('bg-green-100', 'text-green-700');
+                    els.toggleSettingsBtn.classList.remove('text-gray-400', 'bg-transparent', 'hover:bg-gray-100');
+                    setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 50);
+                } else {
+                    els.toggleSettingsBtn.classList.remove('bg-green-100', 'text-green-700');
+                    els.toggleSettingsBtn.classList.add('text-gray-400', 'bg-transparent', 'hover:bg-gray-100');
                 }
             });
-
-            els.refreshBtn.addEventListener('click', () => {
-                generateMockData();
-            });
-
-            els.pauseBtn.addEventListener('click', togglePause);
 
             els.plantForm.addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -374,42 +359,9 @@
             });
         }
 
-        // --- UI Updaters ---
-        function updateConnectionUI() {
-            els.statusDisconnected.classList.add('hidden');
-            els.statusConnected.classList.add('hidden');
-            els.statusSimulating.classList.add('hidden');
-
-            if (state.isSimulating) {
-                els.statusSimulating.classList.remove('hidden');
-                els.wsUrlInput.disabled = true;
-                els.reconnectBtn.disabled = true;
-                els.simulateBtn.className = "px-6 py-2 rounded-xl font-medium transition-colors border bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200";
-                els.simulateBtn.innerText = "Stop Simulation";
-            } else {
-                els.wsUrlInput.disabled = false;
-                els.reconnectBtn.disabled = false;
-                els.simulateBtn.className = "px-6 py-2 rounded-xl font-medium transition-colors border bg-white text-purple-600 border-purple-200 hover:bg-purple-50";
-                els.simulateBtn.innerText = "Test Simulation";
-                
-                if (state.isConnected) {
-                    els.statusConnected.classList.remove('hidden');
-                } else {
-                    els.statusDisconnected.classList.remove('hidden');
-                }
-            }
-        }
-
-        function updateSensorUI(data) {
-            if (data.temperature !== undefined) els.tempVal.innerText = data.temperature;
-            if (data.humidity !== undefined) els.humVal.innerText = data.humidity;
-            if (data.light !== undefined) els.lightVal.innerText = data.light;
-            
-            const now = new Date();
-            els.lastUpdated.innerText = `Last updated: ${now.toLocaleTimeString()}`;
-        }
-
         function renderPlantGrid() {
+            if (!PLANT_TYPES.length) return;
+
             els.plantGrid.innerHTML = PLANT_TYPES.map(plant => {
                 const isSelected = state.selectedPlant === plant.id;
                 const baseClasses = "text-left p-4 rounded-2xl border-2 transition-all cursor-pointer ";
@@ -419,6 +371,9 @@
                 const titleColor = isSelected ? "text-green-800" : "text-gray-800";
                 const dotHtml = isSelected ? `<div class="h-3 w-3 rounded-full bg-green-500 mt-1"></div>` : '';
 
+                const tempStr = `${plant.temperature.min}-${plant.temperature.max}°C`;
+                const humStr = `${plant.humidity.min}-${plant.humidity.max}%`;
+
                 return `
                     <button type="button" onclick="selectPlant('${plant.id}')" class="${baseClasses} ${colorClasses}">
                         <div class="flex justify-between items-start mb-2">
@@ -427,223 +382,167 @@
                         </div>
                         <div class="text-xs space-y-1 text-gray-500">
                             <p class="flex justify-between">
-                                <span>Ideal Temp:</span> <span class="font-medium text-gray-700">${plant.idealTemp}</span>
+                                <span>Ideal Temp:</span> <span class="font-medium text-gray-700">${tempStr}</span>
                             </p>
                             <p class="flex justify-between">
-                                <span>Ideal Hum:</span> <span class="font-medium text-gray-700">${plant.idealHum}</span>
+                                <span>Ideal Hum:</span> <span class="font-medium text-gray-700">${humStr}</span>
                             </p>
                         </div>
                     </button>
                 `;
             }).join('');
 
-    const selectedPlantObj = PLANT_TYPES.find(p => p.id === state.selectedPlant);
-    els.selectedPlantName.innerText = selectedPlantObj ? selectedPlantObj.name : '';
-}
+            const selectedPlantObj = PLANT_TYPES.find(p => p.id === state.selectedPlant);
+            els.selectedPlantName.innerText = selectedPlantObj ? selectedPlantObj.name : '';
+        }
 
-// Global function for inline onclick handler
-window.selectPlant = function(plantId) {
-    state.selectedPlant = plantId;
-    renderPlantGrid();
-    renderPlantDetail();
-    updateSaveButtonState();
-    
-    // Update hidden form inputs
-    const plantInfo = PLANT_TYPES.find(p => p.id === plantId);
-    document.getElementById('selected-plant-input').value = plantId;
-    document.getElementById('plant-name-input').value = plantInfo ? plantInfo.name : '';
-}
-
-function renderPlantDetail() {
-    const selectedPlantObj = PLANT_TYPES.find(p => p.id === state.selectedPlant);
-    if (!selectedPlantObj) {
-        els.plantDetailContent.innerHTML = '<p class="text-gray-500">No plant selected.</p>';
-        return;
-    }
-
-    els.plantDetailContent.innerHTML = `
-        <div class="bg-white rounded-2xl p-6 border border-green-100">
-            <div class="flex items-start justify-between mb-4">
-                <div>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-2">${selectedPlantObj.name}</h3>
-                    <p class="text-gray-600 leading-relaxed">${selectedPlantObj.description}</p>
-                </div>
-                <div class="bg-green-100 px-3 py-1 rounded-full">
-                    <span class="text-green-800 font-medium text-sm">${selectedPlantObj.growthRate} Growing</span>
-                </div>
-            </div>
+        window.selectPlant = function(plantId) {
+            state.selectedPlant = plantId;
+            renderPlantGrid();
+            renderPlantDetail();
+            updateSaveButtonState();
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                <!-- Care Requirements -->
-                <div class="space-y-4">
-                    <h4 class="font-semibold text-gray-800 flex items-center">
-                        <i class="ph ph-heart text-green-600 mr-2"></i>
-                        Care Requirements
-                    </h4>
+            const plantInfo = PLANT_TYPES.find(p => p.id === plantId);
+            document.getElementById('selected-plant-input').value = plantId;
+            document.getElementById('plant-name-input').value = plantInfo ? plantInfo.name : '';
+        }
+
+        function renderPlantDetail() {
+            const selectedPlantObj = PLANT_TYPES.find(p => p.id === state.selectedPlant);
+            if (!selectedPlantObj) return;
+
+            const tempStr = `${selectedPlantObj.temperature.min}-${selectedPlantObj.temperature.max}°C`;
+            const humStr = `${selectedPlantObj.humidity.min}-${selectedPlantObj.humidity.max}%`;
+            const lightStr = `${selectedPlantObj.light.min}-${selectedPlantObj.light.max} lux`;
+
+            els.plantDetailContent.innerHTML = `
+                <div class="bg-white rounded-2xl p-6 border border-green-100">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">${selectedPlantObj.name}</h3>
+                            <p class="text-gray-600 leading-relaxed">${selectedPlantObj.description}</p>
+                        </div>
+                        <div class="bg-green-100 px-3 py-1 rounded-full">
+                            <span class="text-green-800 font-medium text-sm">${selectedPlantObj.growthRate} Growing</span>
+                        </div>
+                    </div>
                     
-                    <div class="space-y-3">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <i class="ph ph-drop text-blue-600 text-sm"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-700">Watering</p>
-                                <p class="text-sm text-gray-500">${selectedPlantObj.waterFrequency}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div class="space-y-4">
+                            <h4 class="font-semibold text-gray-800 flex items-center">
+                                <i class="ph ph-heart text-green-600 mr-2"></i> Care Requirements
+                            </h4>
+                            
+                            <div class="space-y-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <i class="ph ph-drop text-blue-600 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-700">Watering</p>
+                                        <p class="text-sm text-gray-500">${selectedPlantObj.waterFrequency}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                                        <i class="ph ph-sun text-amber-600 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-700">Light Goal</p>
+                                        <p class="text-sm text-gray-500">${lightStr}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                        <i class="ph ph-thermometer text-orange-600 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-700">Temperature Goal</p>
+                                        <p class="text-sm text-gray-500">${tempStr}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center">
+                                        <i class="ph ph-humidity text-cyan-600 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-700">Humidity Goal</p>
+                                        <p class="text-sm text-gray-500">${humStr}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                                <i class="ph ph-sun text-amber-600 text-sm"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-700">Light</p>
-                                <p class="text-sm text-gray-500">${selectedPlantObj.lightRequirement}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                                <i class="ph ph-thermometer text-orange-600 text-sm"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-700">Temperature</p>
-                                <p class="text-sm text-gray-500">${selectedPlantObj.idealTemp}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center">
-                                <i class="ph ph-humidity text-cyan-600 text-sm"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-700">Humidity</p>
-                                <p class="text-sm text-gray-500">${selectedPlantObj.idealHum}</p>
+                        <div class="space-y-4">
+                            <h4 class="font-semibold text-gray-800 flex items-center">
+                                <i class="ph ph-info text-green-600 mr-2"></i> Additional Information
+                            </h4>
+                            
+                            <div class="space-y-3">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mt-0.5">
+                                        <i class="ph ph-plant text-green-600 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-700">Soil Type</p>
+                                        <p class="text-sm text-gray-500">${selectedPlantObj.soilType}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mt-0.5">
+                                        <i class="ph ph-flask text-purple-600 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-700">Fertilizer</p>
+                                        <p class="text-sm text-gray-500">${selectedPlantObj.fertilizer}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center mt-0.5">
+                                        <i class="ph ph-ruler text-emerald-600 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-700">Max Height</p>
+                                        <p class="text-sm text-gray-500">${selectedPlantObj.maxHeight}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mt-0.5">
+                                        <i class="ph ph-warning text-red-600 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-700">Common Issues</p>
+                                        <p class="text-sm text-gray-500">${selectedPlantObj.commonIssues}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Additional Info -->
-                <div class="space-y-4">
-                    <h4 class="font-semibold text-gray-800 flex items-center">
-                        <i class="ph ph-info text-green-600 mr-2"></i>
-                        Additional Information
-                    </h4>
-                    
-                    <div class="space-y-3">
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mt-0.5">
-                                <i class="ph ph-plant text-green-600 text-sm"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-700">Soil Type</p>
-                                <p class="text-sm text-gray-500">${selectedPlantObj.soilType}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mt-0.5">
-                                <i class="ph ph-flask text-purple-600 text-sm"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-700">Fertilizer</p>
-                                <p class="text-sm text-gray-500">${selectedPlantObj.fertilizer}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center mt-0.5">
-                                <i class="ph ph-ruler text-emerald-600 text-sm"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-700">Max Height</p>
-                                <p class="text-sm text-gray-500">${selectedPlantObj.maxHeight}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mt-0.5">
-                                <i class="ph ph-warning text-red-600 text-sm"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-700">Common Issues</p>
-                                <p class="text-sm text-gray-500">${selectedPlantObj.commonIssues}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function updateSaveButtonState() {
-    const hasChanges = state.selectedPlant !== state.originalSelectedPlant;
-            
-    if (hasChanges) {
-        els.saveBtn.disabled = false;
-        els.saveBtn.className = "flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-green-600 text-white hover:bg-green-700 hover:shadow-md";
-        els.saveBtnText.innerText = "Save Configuration";
-        els.saveBtnIcon.className = "ph ph-check text-lg";
-    } else {
-        els.saveBtn.disabled = true;
-        els.saveBtn.className = "flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-gray-400 text-white cursor-not-allowed";
-        els.saveBtnText.innerText = "Save Configuration";
-        els.saveBtnIcon.className = "ph ph-check text-lg";
-    }
-}
-
-        // --- Mock Data Logic ---
-        function generateMockData() {
-            // We wrap the mustache tags in quotes so if they are empty, 
-            // the JavaScript sees an empty string "" instead of a syntax error.
-            const rawTemp = "{{payload.temp}}";
-            const rawHum  = "{{payload.humidity}}";
-            const rawLight = "{{payload.light}}";
-
-            const mockData = {
-                // We convert the string to a number, or use a default (0) if it's empty
-                temperature: rawTemp ? parseFloat(rawTemp).toFixed(1) : (0).toFixed(1),
-                humidity: rawHum ? parseInt(rawHum) : 0,
-                light: rawLight ? parseInt(rawLight) : 0
-            };
-            
-            state.sensors = mockData;
-            updateSensorUI(mockData);
+            `;
         }
 
-        function startMockData() {
-            if (mockDataInterval) {
-                clearInterval(mockDataInterval);
-            }
-            
-            generateMockData(); // Initial data
-            mockDataInterval = setInterval(generateMockData, state.updateInterval);
-        }
-
-        function stopMockData() {
-            if (mockDataInterval) {
-                clearInterval(mockDataInterval);
-                mockDataInterval = null;
-            }
-        }
-
-        function togglePause() {
-            state.isPaused = !state.isPaused;
-            
-            if (state.isPaused) {
-                stopMockData();
-                els.pauseBtn.className = "px-6 py-2 rounded-xl font-medium transition-colors border bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200";
-                els.pauseBtn.innerText = "Resume Updates";
+        function updateSaveButtonState() {
+            const hasChanges = state.selectedPlant !== state.originalSelectedPlant;
+            if (hasChanges) {
+                els.saveBtn.disabled = false;
+                els.saveBtn.className = "flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-green-600 text-white hover:bg-green-700 hover:shadow-md";
+                els.saveBtnText.innerText = "Save Configuration";
+                els.saveBtnIcon.className = "ph ph-check text-lg";
             } else {
-                startMockData();
-                els.pauseBtn.className = "px-6 py-2 rounded-xl font-medium transition-colors border bg-white text-purple-600 border-purple-200 hover:bg-purple-50";
-                els.pauseBtn.innerText = "Pause Updates";
+                els.saveBtn.disabled = true;
+                els.saveBtn.className = "flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-gray-400 text-white cursor-not-allowed";
+                els.saveBtnText.innerText = "Save Configuration";
+                els.saveBtnIcon.className = "ph ph-check text-lg";
             }
         }
 
-        // --- Save Configuration ---
         function setSaveButtonStatus(status) {
             els.saveBtn.disabled = true;
             els.saveSuccessMsg.classList.add('hidden');
@@ -657,67 +556,43 @@ function updateSaveButtonState() {
                 els.saveBtnText.innerText = "Saved";
                 els.saveBtnIcon.className = "ph ph-check-circle text-lg";
                 els.saveSuccessMsg.classList.remove('hidden');
-            } else {
-                // Default
-                els.saveBtn.disabled = false;
-                els.saveBtn.className = "flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm bg-green-600 text-white hover:bg-green-700 hover:shadow-md";
-                els.saveBtnText.innerText = "Save Configuration";
-                els.saveBtnIcon.className = "ph ph-check text-lg";
             }
         }
 
-        function saveConfiguration() {
+        async function saveConfiguration() {
             const plantInfo = PLANT_TYPES.find(p => p.id === state.selectedPlant);
-            const config = {
-                plant: plantInfo.id,
-                plantName: plantInfo.name,
-                updateInterval: state.updateInterval,
-                timestamp: Date.now()
-            };
+            if (!plantInfo) return;
+
+            const config = { plant: plantInfo.id, plantName: plantInfo.name, timestamp: Date.now() };
 
             setSaveButtonStatus('saving');
             
-            // Simulate saving to localStorage or backend
-            setTimeout(() => {
+            try {
+                await fetch('/success', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(plantInfo)
+                });
+
                 localStorage.setItem('smartPotConfig', JSON.stringify(config));
-                console.log('Configuration saved:', config);
+                state.originalSelectedPlant = state.selectedPlant;
                 
-                // Update form inputs and submit
                 els.selectedPlantInput.value = config.plant;
                 els.plantNameInput.value = config.plantName;
                 
                 setSaveButtonStatus('success');
-                
-                // Scroll to selected plant before submitting
-                scrollToSelectedPlant();
-                
-                // Submit form to /success
-                els.plantForm.submit();
-            }, 800);
-        }
+                updateSaveButtonState();
 
-        function scrollToSelectedPlant() {
-            const selectedPlantId = state.selectedPlant;
-            const selectedButton = document.querySelector(`button[onclick="selectPlant('${selectedPlantId}')"]`);
-            
-            if (selectedButton) {
-                selectedButton.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center',
-                    inline: 'center'
-                });
-                
-                // Add a brief highlight effect
-                selectedButton.classList.add('ring-4', 'ring-green-300', 'ring-opacity-50');
-                setTimeout(() => {
-                    selectedButton.classList.remove('ring-4', 'ring-green-300', 'ring-opacity-50');
-                }, 2000);
+                setTimeout(() => { 
+                    if (state.showPlantConfig) els.toggleSettingsBtn.click(); 
+                }, 1500);
+
+            } catch (error) {
+                console.error("Failed to sync configuration with Node-RED:", error);
             }
         }
 
-        // Start app
         init();
-
     </script>
 </body>
 </html>

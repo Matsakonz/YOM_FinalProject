@@ -4,6 +4,7 @@
 #include "SPI.h"
 #include "TFT_22_ILI9225.h"
 #include "images.h"
+#include "TetrisGame.h"
 
 #define TFT_RST 26  
 #define TFT_RS  25  
@@ -71,6 +72,13 @@ uint8_t rx_buffer[PACKET_SIZE];
 int rx_index = 0;
 uint32_t last_packet_time = 0;
 
+// --- Rapid Press Detection ---
+TetrisGame game;
+bool tetrisMode = false;
+int modeChangeCount = 0;
+uint32_t lastModeChangeTime = 0;
+bool lastBtnState = HIGH;
+
 // ==========================================
 // WIFI SETUP
 // ==========================================
@@ -120,8 +128,8 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     state = happyCount; 
     Uart.println(state);
 
-    Serial.printf("Happy Score: %d | Hum: %s, Light: %s, Temp: %s\n", 
-                  state, status_humidity, status_light, status_temp);
+    // Serial.printf("Happy Score: %d | Hum: %s, Light: %s, Temp: %s\n", 
+    //               state, status_humidity, status_light, status_temp);
   }
 }
 
@@ -239,16 +247,37 @@ void Receive() {
         pres = (rx_buffer[11] << 8) | rx_buffer[12];
         humi = (rx_buffer[13] << 8) | rx_buffer[14];
 
-        // Serial.printf("Valid Packet! Mode: %d, Light: %d, Temp: %d, Humi: %d\n", mode, light, temp, moist);
+        Serial.printf("Valid Packet! Mode: %d, Light: %d, Temp: %d, Humi: %d\n", mode, light, adc, moist);
 
-        if (mode != pre_mode){
-          tft.clear();
-        }
+      if (mode != pre_mode) {
+          if (tetrisMode) {
+              int nextRot = (game.pRot + 1) % 4;
+              if (!game.checkCollision(game.px, game.py, nextRot)) {
+                  game.pRot = nextRot;
+              }
+          } else {
+              tft.clear();
+          }
 
-        pre_mode = mode;
+          uint32_t now = millis();
+          if (now - lastModeChangeTime < 1500) { 
+              modeChangeCount++;
+          } else {
+              modeChangeCount = 1;
+          }
+          lastModeChangeTime = now;
 
-        new_data_ready = true;
-        last_packet_time = millis();
+          if (modeChangeCount >= 5) {
+              tetrisMode = !tetrisMode;
+              modeChangeCount = 0;
+              tft.clear();
+              if (tetrisMode) game.init();
+          }
+      }
+
+      pre_mode = mode;
+      new_data_ready = true;
+      last_packet_time = millis();
 
       } else {
         Serial.println("Packet dropped: Checksum mismatch!");
@@ -287,15 +316,44 @@ float getLuxHighRange(int rawValue) {
   return constrain(lux, 0, 1000);
 }
 
+// ==========================================
+// UPDATE SCREEN
+// ==========================================
 void updateScreen(){
-  if (mode == 1) {
+  if (tetrisMode) {
+    int potVal = adc;
+    int targetX = map(potVal, 10, 4080, 0, GRID_W - 3); 
+    
+    if (!game.checkCollision(targetX, game.py, game.pRot)) {
+        game.px = targetX;
+    }
+
+    if (millis() - game.lastFall > 600) {
+        if (!game.checkCollision(game.px, game.py + 1, game.pRot)) {
+            game.py++;
+        } else {
+            game.lockPiece(); 
+            
+            if (game.checkCollision(game.px, game.py, game.pRot)) {
+                game.init();
+            }
+        }
+        game.lastFall = millis();
+    }
+
+    game.draw(tft);
+    tft.setFont(Terminal6x8);
+    tft.drawText(130, 20, "SCORE:", COLOR_WHITE);
+    tft.drawText(130, 35, String(game.score), COLOR_YELLOW);
+    
+  }else if (mode == 1) {
     tft.setBackgroundColor(COLOR_BLACK);
     tft.setFont(Terminal11x16);
 
     if (millis() - last_packet_time < 3000) {
       tft.drawText(10, 5, "LINK: OK", COLOR_GREEN);
     } else {
-      tft.drawText(10, 5, "LINK: LOST", COLOR_RED);
+      tft.drawText(10, 5, "LINK: LOST", COLOR_RED); 
       tft.fillRectangle(10, 5, 100, 22, COLOR_BLACK);
     }
 

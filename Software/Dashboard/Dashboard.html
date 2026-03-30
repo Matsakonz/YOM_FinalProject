@@ -86,13 +86,16 @@
 
         <section>
             <div class="flex justify-between items-end mb-4">
-                <h2 class="text-xl font-bold text-gray-800">Live Pot Status</h2>
+                <div class="flex items-center space-x-3">
+                    <h2 class="text-xl font-bold text-gray-800">Live Pot Status</h2>
+                    <span id="overall-status" class="hidden px-3 py-1 text-xs font-semibold rounded-full border shadow-sm"></span>
+                </div>
                 <span id="last-updated" class="text-xs text-gray-400">Waiting for data...</span>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4 bg-white transition-all hover:shadow-md">
-                    <div class="p-4 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center">
+                <div class="p-6 rounded-2xl border border-gray-100 shadow-sm flex items-start space-x-4 bg-white transition-all hover:shadow-md">
+                    <div class="p-4 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center mt-1">
                         <i class="ph ph-thermometer text-3xl"></i>
                     </div>
                     <div>
@@ -101,10 +104,12 @@
                             <h3 id="temp-val" class="text-3xl font-bold text-gray-800">--</h3>
                             <span class="text-lg text-gray-400 font-medium">°C</span>
                         </div>
+                        <div id="temp-status" class="hidden mt-2 text-xs font-medium px-2 py-0.5 rounded-full border inline-block"></div>
                     </div>
                 </div>
-                <div class="p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4 bg-white transition-all hover:shadow-md">
-                    <div class="p-4 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center">
+
+                <div class="p-6 rounded-2xl border border-gray-100 shadow-sm flex items-start space-x-4 bg-white transition-all hover:shadow-md">
+                    <div class="p-4 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mt-1">
                         <i class="ph ph-drop text-3xl"></i>
                     </div>
                     <div>
@@ -113,10 +118,12 @@
                             <h3 id="hum-val" class="text-3xl font-bold text-gray-800">--</h3>
                             <span class="text-lg text-gray-400 font-medium">%</span>
                         </div>
+                        <div id="hum-status" class="hidden mt-2 text-xs font-medium px-2 py-0.5 rounded-full border inline-block"></div>
                     </div>
                 </div>
-                <div class="p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4 bg-white transition-all hover:shadow-md">
-                    <div class="p-4 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center">
+
+                <div class="p-6 rounded-2xl border border-gray-100 shadow-sm flex items-start space-x-4 bg-white transition-all hover:shadow-md">
+                    <div class="p-4 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mt-1">
                         <i class="ph ph-sun text-3xl"></i>
                     </div>
                     <div>
@@ -125,6 +132,7 @@
                             <h3 id="light-val" class="text-3xl font-bold text-gray-800">--</h3>
                             <span class="text-lg text-gray-400 font-medium">lux</span>
                         </div>
+                        <div id="light-status" class="hidden mt-2 text-xs font-medium px-2 py-0.5 rounded-full border inline-block"></div>
                     </div>
                 </div>
             </div>
@@ -185,7 +193,13 @@
             saveBtnText: document.getElementById('save-btn-text'),
             saveBtnIcon: document.getElementById('save-btn-icon'),
             saveSuccessMsg: document.getElementById('save-success-msg'),
-            plantDetailContent: document.getElementById('plant-detail-content')
+            plantDetailContent: document.getElementById('plant-detail-content'),
+            
+            // ADDED: New DOM elements for Status Badges
+            overallStatus: document.getElementById('overall-status'),
+            tempStatus: document.getElementById('temp-status'),
+            humStatus: document.getElementById('hum-status'),
+            lightStatus: document.getElementById('light-status')
         };
 
         async function init() {
@@ -215,7 +229,6 @@
             }
         }
 
-        // --- UPDATED POLLING FUNCTION ---
         function startDataPolling() {
             setInterval(async () => {
                 try {
@@ -223,10 +236,10 @@
                     if (response.ok) {
                         const liveData = await response.json();
                         
-                        // Update the screen
+                        // Update the screen numbers
                         applyDataToScreen(liveData);
                         
-                        // Check limits and send back to Node-RED/MQTT
+                        // Check limits, update UI badges, and send back to Node-RED/MQTT
                         evaluateAndSendStatus(liveData);
                     }
                 } catch (error) {
@@ -235,7 +248,30 @@
             }, 2000); 
         }
 
-        // --- NEW: FRONTEND EVALUATION & MQTT PUSH ---
+        // ADDED: Helper functions to assign colors based on string status
+        function getStatusColorClasses(status) {
+            const s = status.toLowerCase();
+            if (s === 'happy' || s === 'perfect') {
+                return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+            }
+            if (s.includes('too hot') || s.includes('drowning') || s.includes('too bright')) {
+                return 'bg-red-100 text-red-700 border-red-200';
+            }
+            // Catch-all for warnings (thirsty, needs more sun, too cold, needs attention)
+            return 'bg-amber-100 text-amber-700 border-amber-200';
+        }
+
+        function updateUIBadge(element, statusText, baseClasses) {
+            if (!statusText || statusText === 'unknown') {
+                element.classList.add('hidden');
+                return;
+            }
+            // Capitalize first letter
+            element.innerText = statusText.charAt(0).toUpperCase() + statusText.slice(1);
+            element.className = `${baseClasses} ${getStatusColorClasses(statusText)}`;
+            element.classList.remove('hidden');
+        }
+
         async function evaluateAndSendStatus(sensorData) {
             // Get the currently selected plant limits from our JSON array
             const plantLimits = PLANT_TYPES.find(p => p.id === state.selectedPlant);
@@ -279,6 +315,12 @@
             } else {
                 statusObj.overall = "needs attention";
             }
+
+            // ADDED: Update the dashboard UI Badges
+            updateUIBadge(els.humStatus, statusObj.humidity, "mt-2 text-xs font-medium px-2 py-0.5 rounded-full border inline-block");
+            updateUIBadge(els.lightStatus, statusObj.light, "mt-2 text-xs font-medium px-2 py-0.5 rounded-full border inline-block");
+            updateUIBadge(els.tempStatus, statusObj.temperature, "mt-2 text-xs font-medium px-2 py-0.5 rounded-full border inline-block");
+            updateUIBadge(els.overallStatus, statusObj.overall, "px-3 py-1 text-xs font-semibold rounded-full border shadow-sm");
 
             // Send to the Node-RED /statusplant endpoint via POST
             try {
